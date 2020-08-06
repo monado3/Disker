@@ -1,9 +1,11 @@
+import argparse
 from subprocess import run
 from pathlib import Path
 
 p_proj = Path(__file__).parent.resolve()
 p_exp = p_proj / 'exp'
 p_bin = p_proj / 'bin'
+
 
 def init_argparser():
     parser = argparse.ArgumentParser(
@@ -34,18 +36,19 @@ def init_argparser():
 
 
 def get_exp_idx() -> int:
-    return len(exp.glob('./*'))
+    return len(list((p_exp.glob('./*')))) - 1
 
 
 def get_exp_paths(kind):
     expidx = get_exp_idx()
-    return p_exp / f'{expidx:02}{kind}' / log, p_exp / f'{expidx:02}{kind}' / fig
+    return p_exp / f'{expidx:02}{kind}' / 'log', p_exp / f'{expidx:02}{kind}' / 'fig'
 
 
 def measure_by_bsize():
-    p_log, p_fig = get_log_path('bsize')
+    p_log, p_fig = get_exp_paths('bsize')
     p_log.mkdir(parents=True, exist_ok=False)
     run(f"{p_bin/ 'bsizer.out'} {p_log}", shell=True, check=True)
+
 
 def measure_by_address():
     pass
