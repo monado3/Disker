@@ -53,7 +53,7 @@ def measure_by_bsize():
 def measure_by_address():
     p_log, p_fig = get_exp_paths('address')
     p_log.mkdir(parents=True, exist_ok=False)
-    run(f"{p_bin/ 'bsizer.out'} {p_log / 'log.csv'}", shell=True, check=True)
+    run(f"{p_bin/ 'addresser.out'} {p_log / 'log.csv'}", shell=True, check=True)
 
 
 def measure_random():
