@@ -10,7 +10,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define HDDFILE "/dev/sdb"
+#define HDDFILE "/dev/sdb1"
 
 #define DRCREADGB 200
 #define DRCREADBUFGB 1
