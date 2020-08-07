@@ -187,7 +187,7 @@ measres_t measure_by_bsize(bool is_o_direct, bool is_trial, size_t bsize,
 }
 
 void measure_by_bsizes(size_t readbytes) {
-    size_t i, len = 10;
+    size_t i, len = 14;
     size_t bsizes[] = {512,   1 KiB, 4 KiB,  16 KiB, 64 KiB,  128 KiB, 512 KiB,
                        1 MiB, 4 MiB, 16 MiB, 64 MiB, 128 MiB, 256 MiB, 512 MiB};
     for(i = 0; i < len; i++) {
