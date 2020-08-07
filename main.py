@@ -65,7 +65,7 @@ def main():
         measure_by_address()
     if args.block:
         measure_by_bsize()
-    if args.random():
+    if args.random:
         measure_random()
 
 
