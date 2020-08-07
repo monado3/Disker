@@ -121,8 +121,8 @@ bool is_good_readbyte(size_t readbytes) {
 }
 
 size_t search_good_readbytes() {
-    size_t len = 4;
-    size_t opts[] = {512 MiB, 1 GiB, 2 GiB, 4 GiB};
+    size_t len = 2;
+    size_t opts[] = {512 MiB, 1 GiB};
     size_t i;
     for(i = 0; i < len; i++) {
         if(is_good_readbyte(opts[i])) {
