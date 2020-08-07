@@ -41,13 +41,13 @@ def get_exp_idx() -> int:
 
 def get_exp_paths(kind):
     expidx = get_exp_idx()
-    return p_exp / f'{expidx:02}{kind}' / 'log', p_exp / f'{expidx:02}{kind}' / 'fig'
+    return p_exp / f'{expidx:02}{kind}', p_exp / f'{expidx:02}{kind}' / 'fig'
 
 
 def measure_by_bsize():
     p_log, p_fig = get_exp_paths('bsize')
     p_log.mkdir(parents=True, exist_ok=False)
-    run(f"{p_bin/ 'bsizer.out'} {p_log}", shell=True, check=True)
+    run(f"{p_bin/ 'bsizer.out'} {p_log / 'log.csv'}", shell=True, check=True)
 
 
 def measure_by_address():
