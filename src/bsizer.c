@@ -121,8 +121,8 @@ bool is_good_readbyte(size_t readbytes) {
 }
 
 size_t search_good_readbytes() {
-    size_t len = 3;
-    size_t opts[] = {100 MiB, 500 MiB, 1 GiB};
+    size_t len = 4;
+    size_t opts[] = {512 MiB, 1 GiB, 2 GiB, 4 GiB};
     size_t i;
     for(i = 0; i < len; i++) {
         if(is_good_readbyte(opts[i])) {
@@ -135,7 +135,7 @@ size_t search_good_readbytes() {
 
 measres_t measure_by_bsize(bool is_o_direct, bool is_trial, size_t bsize,
                            size_t readbytes) {
-    printf("started measuring disk performance by %zu\n", readbytes);
+    printf("started measuring disk performance by %zu\n", bsize);
     static off_t sHddOfst = 0;
 
     struct timeval start_tv, end_tv;
@@ -179,7 +179,7 @@ measres_t measure_by_bsize(bool is_o_direct, bool is_trial, size_t bsize,
         return res;
 
     if(is_o_direct)
-        fprintf(gFP, "%zu,%f,%f", bsize, tp, iops);
+        fprintf(gFP, "%zu,%f,%f,", bsize, tp, iops);
     else
         fprintf(gFP, "%f,%f\n", tp, iops);
 
@@ -188,8 +188,8 @@ measres_t measure_by_bsize(bool is_o_direct, bool is_trial, size_t bsize,
 
 void measure_by_bsizes(size_t readbytes) {
     size_t i, len = 10;
-    size_t bsizes[] = {512,   1 KiB, 4 KiB,  64 KiB,  512 KiB,
-                       1 MiB, 4 MiB, 64 MiB, 512 MiB, 1 GiB};
+    size_t bsizes[] = {512,   1 KiB, 4 KiB,  16 KiB, 64 KiB,  128 KiB, 512 KiB,
+                       1 MiB, 4 MiB, 16 MiB, 64 MiB, 128 MiB, 256 MiB, 512 MiB};
     for(i = 0; i < len; i++) {
         measure_by_bsize(true, false, bsizes[i], readbytes);
         measure_by_bsize(false, false, bsizes[i], readbytes);
