@@ -126,7 +126,7 @@ size_t search_good_readbytes() {
     size_t i;
     for(i = 0; i < len; i++) {
         if(is_good_readbyte(opts[i])) {
-            printf("found good readbytes: %zu", opts[i]);
+            printf("found good readbytes: %zu\n", opts[i]);
             return opts[i];
         }
     }
@@ -135,7 +135,7 @@ size_t search_good_readbytes() {
 
 measres_t measure_by_bsize(bool is_o_direct, bool is_trial, size_t bsize,
                            size_t readbytes) {
-    printf("started measuring disk performance by %zu", readbytes);
+    printf("started measuring disk performance by %zu\n", readbytes);
     static off_t sHddOfst = 0;
 
     struct timeval start_tv, end_tv;
