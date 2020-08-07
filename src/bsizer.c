@@ -130,7 +130,7 @@ size_t search_good_readbytes() {
             return opts[i];
         }
     }
-    perror_exit("found no good readbytes");return i;
+    perror_exit("found no good readbytes");
 }
 
 measres_t measure_by_bsize(bool is_o_direct, bool is_trial, size_t bsize,
@@ -204,7 +204,7 @@ int main(int argc, char **argv) {
     drop_raid_cache();
     size_t readbytes = search_good_readbytes();
 
-    if((gFP == fopen(argv[1], "w")) == NULL)
+    if((gFP = fopen(argv[1], "w")) == NULL)
         perror_exit("open error");
 
     fprintf(gFP,
