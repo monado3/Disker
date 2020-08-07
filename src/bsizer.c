@@ -141,7 +141,7 @@ measres_t measure_by_bsize(bool is_o_direct, bool is_trial, size_t bsize,
     struct timeval start_tv, end_tv;
 
     int fd;
-    char *blkbuf;
+    void *blkbuf;
     if(is_o_direct) {
         if(posix_memalign(&blkbuf, 512, bsize))
             perror_exit("posix memalign");
@@ -171,7 +171,7 @@ measres_t measure_by_bsize(bool is_o_direct, bool is_trial, size_t bsize,
 
     double real = calc_elapsed(start_tv, end_tv);
     double tp =
-        (double)bsize * nloops * 1e3 / real; // Seq. Read Throughput (MB/sec)
+        ((double)bsize * nloops / real) * 1e-6; // Seq. Read Throughput (MB/sec)
     double iops = nreads / real;
     measres_t res = {tp, iops};
 
@@ -210,7 +210,8 @@ int main(int argc, char **argv) {
     fprintf(gFP,
             "Disker bsizer output\n"
             "disk:%s, readbytes: %zu\n\n"
-            "bsize,direct_tp,direct_iops,indirect_tp,indirect_iops\n",
+            "bsize,direct_tp(MB/sec),direct_iops,indirect_tp(MB/"
+            "sec),indirect_iops\n",
             HDDFILE, readbytes);
 
     measure_by_bsizes(readbytes);
