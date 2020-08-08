@@ -14,6 +14,7 @@ dask = "^2.22.0"
 
 [tool.poetry.dev-dependencies]
 autopep8 = "^1.5.4"
+jupyterlab = "^2.2.4"
 
 [build-system]
 requires = ["poetry>=0.12"]
