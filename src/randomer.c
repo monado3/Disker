@@ -35,7 +35,7 @@
     "sec),indirect_iops\n"
 
 FILE *gFP;
-size_t gNreads;
+int gNreads;
 
 typedef struct {
     double tp, iops;
@@ -181,6 +181,7 @@ void *p_measure(void *p) {
             perror_exit("pread error");
         gNreads--;
     }
+    return (void*)NULL;
 }
 
 measres_t measure(paras_t paras) {
