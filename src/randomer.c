@@ -1,5 +1,6 @@
 #define _GNU_SOURCE
 
+#include "mylib.h"
 #include <fcntl.h>
 #include <pthread.h>
 #include <stdbool.h>
@@ -11,16 +12,10 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define HDDFILE "/dev/sdb1"
-
-#define DRCREADGB 200
-#define DRCREADBUFGB 1
-
 #define KiB *1024
 #define MiB *1048576
 #define GiB *1073741824
 
-#define GOODTH 0.1
 #define NTRIALS 3 // must be odd
 
 #define DEFBSIZE 4 KiB
@@ -37,97 +32,7 @@
 FILE *gFP;
 int gNreads;
 
-typedef struct {
-    double tp, iops;
-} measres_t;
-
-typedef struct {
-    bool is_trial;
-    size_t nreads, bsize;
-    bool is_o_direct;
-    double region;
-    size_t nthreads;
-    int fd;
-    off_t hdd_area;
-} paras_t;
-
 measres_t measure(paras_t paras);
-
-double calc_elapsed(struct timeval start_tv, struct timeval end_tv) {
-    return (end_tv.tv_sec - start_tv.tv_sec) +
-           (end_tv.tv_usec - start_tv.tv_usec) / 1e6;
-}
-
-void perror_exit(char *msg) {
-    perror(msg);
-    exit(EXIT_FAILURE);
-}
-
-void show_usage(char *program_name) {
-    fprintf(stderr, "Usage: %s log_file_full_path\n", program_name);
-    exit(EXIT_FAILURE);
-}
-
-char *p_bool(bool is_true) {
-    char *t = "true";
-    char *f = "false";
-    return is_true ? t : f;
-}
-void drop_raid_cache() {
-    size_t bsize = DRCREADBUFGB * 1e9;
-
-    char *blkbuf = (char *)malloc(bsize);
-
-    int fd = open(HDDFILE, O_RDONLY);
-    if(fd < 0)
-        perror_exit("open error");
-
-    off_t hdd_size = lseek(fd, 0, SEEK_END);
-    int hdd_gb = hdd_size / 1e9;
-    printf("%s: size = %d GB\n", HDDFILE, hdd_gb);
-    off_t hdd_rear = hdd_size - (DRCREADGB + 1) * 1e9;
-    lseek(fd, hdd_rear, SEEK_SET); // set seek to the rear part of HDD
-
-    size_t i;
-    size_t nloops = DRCREADGB / DRCREADBUFGB;
-    for(i = 0; i < nloops; i++) {
-        if(read(fd, blkbuf, bsize) == -1)
-            perror_exit("read error");
-    }
-
-    close(fd);
-
-    if(system("sync; echo 1 > /proc/sys/vm/drop_caches") == 127)
-        perror_exit("drop page cache error");
-    else
-        printf("droped page cache\n");
-
-    printf("droped RAID cache\n");
-}
-
-void bubble_sort(double arr[]) {
-    size_t i, j;
-    double tmp;
-    for(i = 0; i < NTRIALS - 1; i++) {
-        for(j = 0; j < i; j--) {
-            if(arr[j - 1] > arr[j]) {
-                tmp = arr[j];
-                arr[j] = arr[j - 1];
-                arr[j - 1] = tmp;
-            }
-        }
-    }
-}
-
-bool is_inner_th(double arr[]) {
-    double base = arr[(NTRIALS - 1) / 2];
-    if((1 - GOODTH) * base < arr[0]) {
-        if(arr[0] < (1 + GOODTH) * base) {
-            return true;
-        }
-    }
-    return false;
-}
 
 bool is_good_nreads(paras_t paras) {
     double tps[NTRIALS];
@@ -141,10 +46,10 @@ bool is_good_nreads(paras_t paras) {
         iopses[i] = res.iops;
     }
 
-    bubble_sort(tps);
-    bubble_sort(iopses);
+    bubble_sort(tps, NTRIALS);
+    bubble_sort(iopses, NTRIALS);
 
-    return is_inner_th(tps) && is_inner_th(iopses);
+    return is_inner_th(tps, NTRIALS) && is_inner_th(iopses, NTRIALS);
 }
 
 size_t search_good_nreads(paras_t paras) {
@@ -207,9 +112,9 @@ measres_t measure(paras_t paras) {
 
     int fd;
     if(is_o_direct)
-        fd = open(HDDFILE, O_RDONLY | O_DIRECT);
+        fd = open(gHddFile, O_RDONLY | O_DIRECT);
     else
-        fd = open(HDDFILE, O_RDONLY);
+        fd = open(gHddFile, O_RDONLY);
     if(fd < 0)
         perror_exit("open error");
 
@@ -288,7 +193,7 @@ void measure_by_bsizes(size_t nreads, char *logdir) {
     fprintf(gFP,
             "Disker randomer bsizes output\n"
             "disk:%s, nreads: %zu\n\n" CSVHEADER,
-            HDDFILE, nreads);
+            gHddFile, nreads);
 
     size_t i, len = 14;
     size_t bsizes[] = {512,   1 KiB, 4 KiB,  16 KiB, 64 KiB,  128 KiB, 512 KiB,
@@ -312,7 +217,7 @@ void measure_by_regions(size_t nreads, char *logdir) {
         perror_exit("open error");
 
     fprintf(gFP, "Disker randomer regions output\n" INFOHEADER CSVHEADER,
-            HDDFILE, nreads);
+            gHddFile, nreads);
 
     size_t i, len = 10;
     for(i = 1; i < len; i++) {
@@ -342,7 +247,7 @@ void measure_by_threads(size_t nreads, char *logdir) {
         perror_exit("open error");
 
     fprintf(gFP, "Disker randomer threads output\n" INFOHEADER CSVHEADER,
-            HDDFILE, nreads);
+            gHddFile, nreads);
 
     size_t i;
     for(i = 1; i <= MAXNTREADS; i++) {
@@ -366,7 +271,7 @@ void measure_by_region_mthreads(size_t nreads, char *logdir) {
     fprintf(
         gFP,
         "Disker randomer regions by mutlithreads output\n" INFOHEADER CSVHEADER,
-        HDDFILE, nreads);
+        gHddFile, nreads);
 
     size_t i, len = 10;
     for(i = 1; i < len; i++) {

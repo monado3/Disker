@@ -1,13 +1,28 @@
+CC = gcc
+CFLAGS = -Wall
+
 all: addresser bsizer randomer
 
-addresser: src/addresser.c
-	gcc -Wall -o bin/addresser.out src/addresser.c
+addresser: mylib.o addresser.o
+	$(CC) $(CFLAGS) -o bin/addresser.out bin/mylib.o bin/addresser.o
 
-bsizer: src/bsizer.c
-	gcc -Wall -o bin/bsizer.out src/bsizer.c
+bsizer: mylib.o bsizer.o
+	$(CC) $(CFLAGS) -o bin/bsizer.out bin/mylib.o bin/bsizer.o
 
-randomer: src/randomer.c
-	gcc -Wall -pthread -o bin/randomer.out src/randomer.c
+randomer: mylib.o randomer.o
+	$(CC) $(CFLAGS) -pthread -o bin/randomer.out bin/mylib.o bin/randomer.o
+
+mylib.o : src/mylib.c
+	$(CC) $(CFLAGS) -c src/mylib.c -o bin/mylib.o
+
+addresser.o : src/addresser.c
+	$(CC) $(CFLAGS) -c src/addresser.c -o bin/addresser.o
+
+bsizer.o : src/bsizer.c
+	$(CC) $(CFLAGS) -c src/bsizer.c -o bin/bsizer.o
+
+randomer.o : src/randomer.c
+	$(CC) $(CFLAGS) -c src/randomer.c -o bin/randomer.o
 
 clean:
-	$(RM) bin/addresser.out bin/bsizer.out bin/randomer.out
+	$(RM) bin/*.out bin/*.o
