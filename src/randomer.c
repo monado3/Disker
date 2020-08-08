@@ -302,6 +302,14 @@ void measure_by_regions(size_t nreads, char *logdir) {
             HDDFILE, nreads);
 
     size_t i, len = 10;
+    for(i = 1; i < len; i++) {
+        paras_t direct = {false,    nreads,      DEFBSIZE, true,
+                          i * 0.01, DEFNTHREADS, NOTNEED,  NOTNEED};
+        paras_t indirect = {false,    nreads,      DEFBSIZE, false,
+                            i * 0.01, DEFNTHREADS, NOTNEED,  NOTNEED};
+        measure(direct);
+        measure(indirect);
+    }
     for(i = 1; i <= len; i++) {
         paras_t direct = {false,   nreads,      DEFBSIZE, true,
                           i * 0.1, DEFNTHREADS, NOTNEED,  NOTNEED};
@@ -348,6 +356,14 @@ void measure_by_region_mthreads(size_t nreads, char *logdir) {
         HDDFILE, nreads);
 
     size_t i, len = 10;
+    for(i = 1; i < len; i++) {
+        paras_t direct = {false,    nreads,     DEFBSIZE, true,
+                          i * 0.01, MAXNTREADS, NOTNEED,  NOTNEED};
+        paras_t indirect = {false,    nreads,     DEFBSIZE, false,
+                            i * 0.01, MAXNTREADS, NOTNEED,  NOTNEED};
+        measure(direct);
+        measure(indirect);
+    }
     for(i = 1; i <= len; i++) {
         paras_t direct = {false,   nreads,     DEFBSIZE, true,
                           i * 0.1, MAXNTREADS, NOTNEED,  NOTNEED};
