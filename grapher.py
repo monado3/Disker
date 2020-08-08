@@ -41,11 +41,14 @@ def read_s_bsizes(p):
 
 
 def plot_s_bsizes(df):
+    readarea = df.loc[0, 'readbytes']
+
     fig, (axtp, axiops) = _base_tp_iops_fig(df, 'bsize')
 
     axtp.set_xscale('log')
     axiops.set_xlabel('block size (Bytes)')
-    axtp.set_title('Seq. Access Microbenchmark (by block size)')
+    axtp.set_title(
+        f'Seq. Access Microbenchmark by block size ({readarea=:.3e} Byte)')
     return fig
 
 
@@ -54,6 +57,8 @@ def read_s_addresses(p):
 
 
 def plot_s_addresses(df):
+    bsize = df.loc[0, 'bsize']
+
     fig, ax = plt.subplots(figsize=(10, 5), dpi=250)
 
     ax.plot(df['address'], df['direct_tp(MB/sec)'], label='w/ O_DIRECT')
@@ -61,7 +66,7 @@ def plot_s_addresses(df):
     ax.legend()
     ax.set_xlabel('address')
     ax.set_ylabel('throughput (MB/sec)')
-    ax.set_title('Seq. Access Microbenchmark (by address)')
+    ax.set_title(f'Seq. Access Microbenchmark by address ({bsize=:.3e} Byte)')
     return fig
 
 
@@ -70,11 +75,13 @@ def read_r_bsizes(p):
 
 
 def plot_r_bsizes(df):
+    nreads = df.loc[0, 'nreads']
+
     fig, (axtp, axiops) = _base_tp_iops_fig(df, 'bsize')
 
     axtp.set_xscale('log')
     axiops.set_xlabel('block size (Bytes)')
-    axtp.set_title('Rand. Access Microbenchmark (by block size)')
+    axtp.set_title(f'Rand. Access Microbenchmark by block size ({nreads=})')
     return fig
 
 
@@ -83,11 +90,13 @@ def read_r_regions(p):
 
 
 def plot_r_regions(df):
+    nreads = df.loc[0, 'nreads']
+
     fig, (axtp, axiops) = _base_tp_iops_fig(df, 'region')
 
     axtp.set_xscale('log')
     axiops.set_xlabel('region (ratio)')
-    axtp.set_title('Rand. Access Microbenchmark (by region ratio)')
+    axtp.set_title(f'Rand. Access Microbenchmark by region ratio ({nreads=})')
     return fig
 
 
@@ -96,10 +105,13 @@ def read_r_threads(p):
 
 
 def plot_r_threads(df):
+    nreads = df.loc[0, 'nreads']
+
     fig, (axtp, axiops) = _base_tp_iops_fig(df, 'nthreads')
 
     axiops.set_xlabel('No. of threads')
-    axtp.set_title('Rand. Access Microbenchmark (by No. of threads)')
+    axtp.set_title(
+        f'Rand. Access Microbenchmark by No. of threads ({nreads=})')
     return fig
 
 
@@ -108,6 +120,7 @@ def read_r_regions_mthreads(p):
 
 
 def plot_r_regions_mthreads(df):
+    nreads = df.loc[0, 'nreads']
     nthreads = df.loc[0, 'nthreads']
 
     fig, (axtp, axiops) = _base_tp_iops_fig(df, 'region')
@@ -115,5 +128,5 @@ def plot_r_regions_mthreads(df):
     axtp.set_xscale('log')
     axiops.set_xlabel('region (ratio')
     axtp.set_title(
-        f'Rand. Access Microbenchmark (by region ratio in {nthreads} threads)')
+        f'Rand. Access Microbenchmark by region ratio in {nthreads} threads ({nreads=}')
     return fig
