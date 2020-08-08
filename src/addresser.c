@@ -11,15 +11,11 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define KiB *1024
-#define MiB *1048576
-#define GiB *1073741824
-
 #define BBYTES 1 GiB
 
 FILE *gFP;
 
-void measure_by_addresses() {
+void measure_by_addresses(paras_t paras) {
     printf("started measuring\n");
 
     struct timeval start_tv, end_tv;
@@ -29,7 +25,7 @@ void measure_by_addresses() {
     if(posix_memalign(&blkbuf, 512, BBYTES))
         perror_exit("posix memalign");
 
-    fd = open(gHddFile, O_RDONLY | O_DIRECT);
+    fd = open(HDDFILE, O_RDONLY | O_DIRECT);
     if(fd < 0)
         perror_exit("open error");
 
@@ -46,7 +42,8 @@ void measure_by_addresses() {
 
         real = calc_elapsed(start_tv, end_tv);
         tp = ((double)BBYTES / real) * 1e-6; // Seq. Read Throughput (MB/sec)
-        fprintf(gFP, "%zu,%f\n", hdd_ofst, tp);
+        fprintf(gFP, "%zu,%f,%zu,%zu,%zu,,%f,,,\n", paras.bsize, paras.region,
+                paras.nthreads, hdd_ofst, hdd_size, tp);
 
         hdd_ofst = lseek(fd, 0, SEEK_CUR);
     }
@@ -65,13 +62,11 @@ int main(int argc, char **argv) {
     if((gFP = fopen(argv[1], "w")) == NULL)
         perror_exit("open error");
 
-    fprintf(gFP,
-            "Disker addresser output\n"
-            "disk:%s\n\n"
-            "address,direct_tp(MB/sec)\n",
-            gHddFile);
+    print_csvheaders(gFP, "addresser");
 
-    measure_by_addresses();
+    paras_t paras = {false, NOTNEED, NOTNEED, BBYTES, true,
+                     1.,    1,       NOTNEED, NOTNEED};
+    measure_by_addresses(paras);
 
     fclose(gFP);
     return EXIT_SUCCESS;

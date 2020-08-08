@@ -1,5 +1,6 @@
 #define _GNU_SOURCE
 
+#include "mylib.h"
 #include <fcntl.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -9,11 +10,10 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-const char *gHddFile = "/dev/sdb1";
-
 #define DRCREADGB 200
 #define DRCREADBUFGB 1
 
+#define NTRIALS 3 // must be odd
 #define GOODTH 0.1
 
 double calc_elapsed(struct timeval start_tv, struct timeval end_tv) {
@@ -42,13 +42,13 @@ void drop_raid_cache() {
 
     char *blkbuf = (char *)malloc(bsize);
 
-    int fd = open(gHddFile, O_RDONLY);
+    int fd = open(HDDFILE, O_RDONLY);
     if(fd < 0)
         perror_exit("open error");
 
     off_t hdd_size = lseek(fd, 0, SEEK_END);
     int hdd_gb = hdd_size / 1e9;
-    printf("%s: size = %d GB\n", gHddFile, hdd_gb);
+    printf("%s: size = %d GB\n", HDDFILE, hdd_gb);
     off_t hdd_rear = hdd_size - (DRCREADGB + 1) * 1e9;
     lseek(fd, hdd_rear, SEEK_SET); // set seek to the rear part of HDD
 
@@ -91,4 +91,32 @@ bool is_inner_th(double arr[], size_t len) {
         }
     }
     return false;
+}
+
+bool is_good_para(measres_t (*func)(paras_t), paras_t paras) {
+    double tps[NTRIALS];
+    double iopses[NTRIALS];
+
+    size_t i;
+    measres_t res;
+    for(i = 0; i < NTRIALS; i++) {
+        res = (*func)(paras);
+        tps[i] = res.tp;
+        iopses[i] = res.iops;
+    }
+
+    bubble_sort(tps, NTRIALS);
+    bubble_sort(iopses, NTRIALS);
+
+    return is_inner_th(tps, NTRIALS) && is_inner_th(iopses, NTRIALS);
+}
+
+void print_csvheaders(FILE *fp, char *progname) {
+    fprintf(fp,
+            "Disker %s output\n"
+            "disk:%s\n\n"
+
+            "bsize,region,nthreads,address,readbytes,nreads,direct_tp(MB/"
+            "sec),direct_iops,indirect_tp(MB/sec),indirect_iops\n",
+            progname, HDDFILE);
 }

@@ -12,19 +12,13 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define KiB *1024
-#define MiB *1048576
-#define GiB *1073741824
-
-#define NTRIALS 3 // must be odd
+// #define NTRIALS 3 // must be odd
 
 #define DEFBSIZE 4 KiB
 #define DEFREGION 1.
 #define DEFNTHREADS 1
 #define MAXNTREADS 100
-#define NOTNEED 0
 
-#define INFOHEADER "disk:%s, nreads: %zu\n\n"
 #define CSVHEADER                                                              \
     "bsize,region,nthreads,direct_tp(MB/sec),direct_iops,indirect_tp(MB/"      \
     "sec),indirect_iops\n"
@@ -34,23 +28,23 @@ int gNreads;
 
 measres_t measure(paras_t paras);
 
-bool is_good_nreads(paras_t paras) {
-    double tps[NTRIALS];
-    double iopses[NTRIALS];
+// bool is_good_nreads(paras_t paras) {
+//     double tps[NTRIALS];
+//     double iopses[NTRIALS];
 
-    size_t i;
-    measres_t res;
-    for(i = 0; i < NTRIALS; i++) {
-        res = measure(paras);
-        tps[i] = res.tp;
-        iopses[i] = res.iops;
-    }
+//     size_t i;
+//     measres_t res;
+//     for(i = 0; i < NTRIALS; i++) {
+//         res = measure(paras);
+//         tps[i] = res.tp;
+//         iopses[i] = res.iops;
+//     }
 
-    bubble_sort(tps, NTRIALS);
-    bubble_sort(iopses, NTRIALS);
+//     bubble_sort(tps, NTRIALS);
+//     bubble_sort(iopses, NTRIALS);
 
-    return is_inner_th(tps, NTRIALS) && is_inner_th(iopses, NTRIALS);
-}
+//     return is_inner_th(tps, NTRIALS) && is_inner_th(iopses, NTRIALS);
+// }
 
 size_t search_good_nreads(paras_t paras) {
     size_t len = 7;
@@ -58,7 +52,7 @@ size_t search_good_nreads(paras_t paras) {
     size_t i;
     for(i = 0; i < len; i++) {
         paras.nreads = nreadses[i];
-        if(is_good_nreads(paras)) {
+        if(is_good_para(measure, paras)) {
             printf("found good nreads: %zu\n", nreadses[i]);
             return nreadses[i];
         }
@@ -112,9 +106,9 @@ measres_t measure(paras_t paras) {
 
     int fd;
     if(is_o_direct)
-        fd = open(gHddFile, O_RDONLY | O_DIRECT);
+        fd = open(HDDFILE, O_RDONLY | O_DIRECT);
     else
-        fd = open(gHddFile, O_RDONLY);
+        fd = open(HDDFILE, O_RDONLY);
     if(fd < 0)
         perror_exit("open error");
 
@@ -176,7 +170,8 @@ measres_t measure(paras_t paras) {
         return res;
 
     if(is_o_direct)
-        fprintf(gFP, "%zu,%f,%zu,%f,%f", bsize, region, nthreads, tp, iops);
+        fprintf(gFP, "%zu,%f,%zu,,,%zu,%f,%f", bsize, region, nthreads, nreads,
+                tp, iops);
     else
         fprintf(gFP, ",%f,%f\n", tp, iops);
 
@@ -190,21 +185,17 @@ void measure_by_bsizes(size_t nreads, char *logdir) {
     if((gFP = fopen(logpath, "w")) == NULL)
         perror_exit("open error");
 
-    fprintf(gFP,
-            "Disker randomer bsizes output\n"
-            "disk:%s, nreads: %zu\n\n" CSVHEADER,
-            gHddFile, nreads);
+    print_csvheaders(gFP, "randomer bsizes");
 
     size_t i, len = 14;
     size_t bsizes[] = {512,   1 KiB, 4 KiB,  16 KiB, 64 KiB,  128 KiB, 512 KiB,
                        1 MiB, 4 MiB, 16 MiB, 64 MiB, 128 MiB, 256 MiB, 512 MiB};
     for(i = 0; i < len; i++) {
-        paras_t direct = {false,     nreads,      bsizes[i], true,
-                          DEFREGION, DEFNTHREADS, NOTNEED,   NOTNEED};
-        paras_t indirect = {false,     nreads,      bsizes[i], false,
-                            DEFREGION, DEFNTHREADS, NOTNEED,   NOTNEED};
-        measure(direct);
-        measure(indirect);
+        paras_t paras = {false,     NOTNEED,     nreads,  bsizes[i], true,
+                         DEFREGION, DEFNTHREADS, NOTNEED, NOTNEED};
+        measure(paras);
+        paras.is_o_direct = false;
+        measure(paras);
     }
     fclose(gFP);
 }
@@ -216,25 +207,23 @@ void measure_by_regions(size_t nreads, char *logdir) {
     if((gFP = fopen(logpath, "w")) == NULL)
         perror_exit("open error");
 
-    fprintf(gFP, "Disker randomer regions output\n" INFOHEADER CSVHEADER,
-            gHddFile, nreads);
+    print_csvheaders(gFP, "randomer regions");
 
     size_t i, len = 10;
     for(i = 1; i < len; i++) {
-        paras_t direct = {false,    nreads,      DEFBSIZE, true,
-                          i * 0.01, DEFNTHREADS, NOTNEED,  NOTNEED};
-        paras_t indirect = {false,    nreads,      DEFBSIZE, false,
-                            i * 0.01, DEFNTHREADS, NOTNEED,  NOTNEED};
-        measure(direct);
-        measure(indirect);
+        paras_t paras = {false,    NOTNEED,     nreads,  DEFBSIZE, true,
+                         i * 0.01, DEFNTHREADS, NOTNEED, NOTNEED};
+        measure(paras);
+        paras.is_o_direct = false;
+        measure(paras);
     }
     for(i = 1; i <= len; i++) {
-        paras_t direct = {false,   nreads,      DEFBSIZE, true,
-                          i * 0.1, DEFNTHREADS, NOTNEED,  NOTNEED};
-        paras_t indirect = {false,   nreads,      DEFBSIZE, false,
-                            i * 0.1, DEFNTHREADS, NOTNEED,  NOTNEED};
-        measure(direct);
-        measure(indirect);
+        paras_t paras = {false,   NOTNEED,     nreads,  DEFBSIZE, true,
+                         i * 0.1, DEFNTHREADS, NOTNEED, NOTNEED};
+        measure(paras);
+        paras.is_o_direct = false;
+
+        measure(paras);
     }
     fclose(gFP);
 }
@@ -246,17 +235,15 @@ void measure_by_threads(size_t nreads, char *logdir) {
     if((gFP = fopen(logpath, "w")) == NULL)
         perror_exit("open error");
 
-    fprintf(gFP, "Disker randomer threads output\n" INFOHEADER CSVHEADER,
-            gHddFile, nreads);
+    print_csvheaders(gFP, "randomer threads");
 
     size_t i;
     for(i = 1; i <= MAXNTREADS; i++) {
-        paras_t direct = {false,     nreads, DEFBSIZE, true,
-                          DEFREGION, i,      NOTNEED,  NOTNEED};
-        paras_t indirect = {false,     nreads, DEFBSIZE, false,
-                            DEFREGION, i,      NOTNEED,  NOTNEED};
-        measure(direct);
-        measure(indirect);
+        paras_t paras = {false,     NOTNEED, nreads,  DEFBSIZE, true,
+                         DEFREGION, i,       NOTNEED, NOTNEED};
+        measure(paras);
+        paras.is_o_direct = false;
+        measure(paras);
     }
     fclose(gFP);
 }
@@ -268,27 +255,22 @@ void measure_by_region_mthreads(size_t nreads, char *logdir) {
     if((gFP = fopen(logpath, "w")) == NULL)
         perror_exit("open error");
 
-    fprintf(
-        gFP,
-        "Disker randomer regions by mutlithreads output\n" INFOHEADER CSVHEADER,
-        gHddFile, nreads);
+    print_csvheaders(gFP, "randomer regions by mutlithreads");
 
     size_t i, len = 10;
     for(i = 1; i < len; i++) {
-        paras_t direct = {false,    nreads,     DEFBSIZE, true,
-                          i * 0.01, MAXNTREADS, NOTNEED,  NOTNEED};
-        paras_t indirect = {false,    nreads,     DEFBSIZE, false,
-                            i * 0.01, MAXNTREADS, NOTNEED,  NOTNEED};
-        measure(direct);
-        measure(indirect);
+        paras_t paras = {false,    NOTNEED,    nreads,  DEFBSIZE, true,
+                         i * 0.01, MAXNTREADS, NOTNEED, NOTNEED};
+        measure(paras);
+        paras.is_o_direct = false;
+        measure(paras);
     }
     for(i = 1; i <= len; i++) {
-        paras_t direct = {false,   nreads,     DEFBSIZE, true,
-                          i * 0.1, MAXNTREADS, NOTNEED,  NOTNEED};
-        paras_t indirect = {false,   nreads,     DEFBSIZE, false,
-                            i * 0.1, MAXNTREADS, NOTNEED,  NOTNEED};
-        measure(direct);
-        measure(indirect);
+        paras_t paras = {false,   NOTNEED,    nreads,  DEFBSIZE, true,
+                         i * 0.1, MAXNTREADS, NOTNEED, NOTNEED};
+        measure(paras);
+        paras.is_o_direct = false;
+        measure(paras);
     }
     fclose(gFP);
 }
@@ -302,8 +284,8 @@ int main(int argc, char **argv) {
     drop_raid_cache();
 
     size_t nreads;
-    paras_t trial = {true,      NOTNEED,     DEFBSIZE, true,
-                     DEFREGION, DEFNTHREADS, NOTNEED,  NOTNEED};
+    paras_t trial = {true,      NOTNEED,     NOTNEED, DEFBSIZE, true,
+                     DEFREGION, DEFNTHREADS, NOTNEED, NOTNEED};
     nreads = search_good_nreads(trial);
     measure_by_bsizes(nreads, logdir);
 

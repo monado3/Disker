@@ -11,41 +11,41 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define KiB *1024
-#define MiB *1048576
-#define GiB *1073741824
+// #define NTRIALS 3 // must be odd
 
-#define NTRIALS 3 // must be odd
+#define BSIZE 64 KiB
 
 FILE *gFP;
 
-measres_t measure_by_bsize(bool is_o_direct, bool is_trial, size_t bsize,
-                           size_t readbytes);
+measres_t measure_by_bsize(paras_t paras);
 
-bool is_good_readbyte(size_t readbytes) {
-    double tps[NTRIALS];
-    double iopses[NTRIALS];
+// bool is_good_readbyte(paras_t paras) {
+//     double tps[NTRIALS];
+//     double iopses[NTRIALS];
 
-    size_t i;
-    measres_t res;
-    for(i = 0; i < NTRIALS; i++) {
-        res = measure_by_bsize(true, true, 64 KiB, readbytes);
-        tps[i] = res.tp;
-        iopses[i] = res.iops;
-    }
+//     size_t i;
+//     measres_t res;
+//     for(i = 0; i < NTRIALS; i++) {
+//         res = measure_by_bsize(paras);
+//         tps[i] = res.tp;
+//         iopses[i] = res.iops;
+//     }
 
-    bubble_sort(tps, NTRIALS);
-    bubble_sort(iopses, NTRIALS);
+//     bubble_sort(tps, NTRIALS);
+//     bubble_sort(iopses, NTRIALS);
 
-    return is_inner_th(tps, NTRIALS) && is_inner_th(iopses, NTRIALS);
-}
+//     return is_inner_th(tps, NTRIALS) && is_inner_th(iopses, NTRIALS);
+// }
 
 size_t search_good_readbytes() {
     size_t len = 2;
     size_t opts[] = {512 MiB, 1 GiB};
+    paras_t paras = {true, NOTNEED, NOTNEED, BSIZE,  true,
+                     1.,   1,         NOTNEED, NOTNEED};
     size_t i;
     for(i = 0; i < len; i++) {
-        if(is_good_readbyte(opts[i])) {
+        paras.readbytes = opts[i];
+        if(is_good_para(measure_by_bsize, paras)) {
             printf("found good readbytes: %zu\n", opts[i]);
             return opts[i];
         }
@@ -54,8 +54,14 @@ size_t search_good_readbytes() {
     return 1;
 }
 
-measres_t measure_by_bsize(bool is_o_direct, bool is_trial, size_t bsize,
-                           size_t readbytes) {
+measres_t measure_by_bsize(paras_t paras) {
+    bool is_trial = paras.is_trial;
+    size_t readbytes = paras.readbytes;
+    size_t bsize = paras.bsize;
+    bool is_o_direct = paras.is_o_direct;
+    double region = paras.region;
+    size_t nthreads = paras.nthreads;
+
     printf("started measuring disk performance by %zu\n", bsize);
     static off_t sHddOfst = 0;
 
@@ -66,10 +72,10 @@ measres_t measure_by_bsize(bool is_o_direct, bool is_trial, size_t bsize,
     if(is_o_direct) {
         if(posix_memalign(&blkbuf, 512, bsize))
             perror_exit("posix memalign");
-        fd = open(gHddFile, O_RDONLY | O_DIRECT);
+        fd = open(HDDFILE, O_RDONLY | O_DIRECT);
     } else {
         blkbuf = (char *)malloc(bsize);
-        fd = open(gHddFile, O_RDONLY);
+        fd = open(HDDFILE, O_RDONLY);
     }
 
     if(fd < 0)
@@ -100,20 +106,24 @@ measres_t measure_by_bsize(bool is_o_direct, bool is_trial, size_t bsize,
         return res;
 
     if(is_o_direct)
-        fprintf(gFP, "%zu,%f,%f,", bsize, tp, iops);
+        fprintf(gFP, "%zu,%f,%zu,,%zu,%zu,%f,%f", bsize, region, nthreads,
+                readbytes, nreads, tp, iops);
     else
-        fprintf(gFP, "%f,%f\n", tp, iops);
+        fprintf(gFP, ",%f,%f\n", tp, iops);
 
     return res;
 }
 
-void measure_by_bsizes(size_t readbytes) {
+void measure_by_bsizes(paras_t paras) {
     size_t i, len = 14;
     size_t bsizes[] = {512,   1 KiB, 4 KiB,  16 KiB, 64 KiB,  128 KiB, 512 KiB,
                        1 MiB, 4 MiB, 16 MiB, 64 MiB, 128 MiB, 256 MiB, 512 MiB};
     for(i = 0; i < len; i++) {
-        measure_by_bsize(true, false, bsizes[i], readbytes);
-        measure_by_bsize(false, false, bsizes[i], readbytes);
+        paras.bsize = bsizes[i];
+        paras.is_o_direct = true;
+        measure_by_bsize(paras);
+        paras.is_o_direct = false;
+        measure_by_bsize(paras);
     }
 }
 
@@ -128,14 +138,11 @@ int main(int argc, char **argv) {
     if((gFP = fopen(argv[1], "w")) == NULL)
         perror_exit("open error");
 
-    fprintf(gFP,
-            "Disker bsizer output\n"
-            "disk:%s, readbytes: %zu\n\n"
-            "bsize,direct_tp(MB/sec),direct_iops,indirect_tp(MB/"
-            "sec),indirect_iops\n",
-            gHddFile, readbytes);
+    print_csvheaders(gFP, "bsizer");
 
-    measure_by_bsizes(readbytes);
+    paras_t paras = {false, readbytes, NOTNEED, NOTNEED, NOTNEED,
+                     1.,    1,         NOTNEED, NOTNEED};
+    measure_by_bsizes(paras);
 
     fclose(gFP);
     return EXIT_SUCCESS;
