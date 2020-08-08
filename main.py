@@ -49,6 +49,7 @@ def get_exp_paths(kind):
 def measure_by_bsize():
     p_exp, p_fig = get_exp_paths('bsize')
     p_exp.mkdir(parents=True, exist_ok=False)
+    p_fig.mkdir(parents=True, exist_ok=False)
     run(f"{p_bin/ 'bsizer.out'} {p_exp / 'log.csv'}", shell=True, check=True)
 
     df = read_s_bsizes(p_exp)
@@ -59,6 +60,7 @@ def measure_by_bsize():
 def measure_by_address():
     p_exp, p_fig = get_exp_paths('address')
     p_exp.mkdir(parents=True, exist_ok=False)
+    p_fig.mkdir(parents=True, exist_ok=False)
     run(f"{p_bin/ 'addresser.out'} {p_exp / 'log.csv'}", shell=True, check=True)
 
     df = read_s_addresses(p_exp)
@@ -70,6 +72,7 @@ def measure_random():
     p_exp, p_fig = get_exp_paths('random')
     p_log = p_exp / 'log'
     p_log.mkdir(parents=True, exist_ok=False)
+    p_fig.mkdir(parents=True, exist_ok=False)
     run(f"{p_bin/ 'randomer.out'} {p_log}", shell=True, check=True)
 
     df = read_r_bsizes(p_exp)
