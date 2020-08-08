@@ -181,7 +181,7 @@ void *p_measure(void *p) {
             perror_exit("pread error");
         gNreads--;
     }
-    return (void*)NULL;
+    return (void *)NULL;
 }
 
 measres_t measure(paras_t paras) {
@@ -217,11 +217,12 @@ measres_t measure(paras_t paras) {
             if(posix_memalign(&blkbuf, 512, bsize))
                 perror_exit("posix memalign");
         } else {
-            blkbuf = (char *)malloc(bsize);
+            blkbuf = (void *)malloc(bsize);
         }
+        off_t align_area = hdd_area / 512;
         gettimeofday(&start_tv, NULL);
         for(i = 0; i < nreads; i++) {
-            lseek(fd, rand() % hdd_area, SEEK_SET);
+            lseek(fd, (rand() % align_area) * 512, SEEK_SET);
             if(read(fd, blkbuf, bsize) == -1)
                 perror_exit("read error");
         }
