@@ -13,7 +13,6 @@
 
 #define NOTNEED 0
 
-
 typedef struct {
     double tp, iops;
 } measres_t;
@@ -35,7 +34,7 @@ char *p_bool(bool is_true);
 void drop_raid_cache();
 void bubble_sort(double arr[], size_t len);
 bool is_inner_th(double arr[], size_t len);
-bool is_good_para(measres_t (*func) (paras_t), paras_t paras);
+bool is_good_para(measres_t (*func)(paras_t), paras_t paras);
 void print_csvheaders(FILE *fp, char *progname);
 
 #endif

@@ -12,39 +12,15 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-// #define NTRIALS 3 // must be odd
-
 #define DEFBSIZE 4 KiB
 #define DEFREGION 1.
 #define DEFNTHREADS 1
 #define MAXNTREADS 100
 
-#define CSVHEADER                                                              \
-    "bsize,region,nthreads,direct_tp(MB/sec),direct_iops,indirect_tp(MB/"      \
-    "sec),indirect_iops\n"
-
 FILE *gFP;
 int gNreads;
 
 measres_t measure(paras_t paras);
-
-// bool is_good_nreads(paras_t paras) {
-//     double tps[NTRIALS];
-//     double iopses[NTRIALS];
-
-//     size_t i;
-//     measres_t res;
-//     for(i = 0; i < NTRIALS; i++) {
-//         res = measure(paras);
-//         tps[i] = res.tp;
-//         iopses[i] = res.iops;
-//     }
-
-//     bubble_sort(tps, NTRIALS);
-//     bubble_sort(iopses, NTRIALS);
-
-//     return is_inner_th(tps, NTRIALS) && is_inner_th(iopses, NTRIALS);
-// }
 
 size_t search_good_nreads(paras_t paras) {
     size_t len = 7;

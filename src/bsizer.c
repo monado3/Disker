@@ -11,37 +11,17 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-// #define NTRIALS 3 // must be odd
-
 #define BSIZE 64 KiB
 
 FILE *gFP;
 
 measres_t measure_by_bsize(paras_t paras);
 
-// bool is_good_readbyte(paras_t paras) {
-//     double tps[NTRIALS];
-//     double iopses[NTRIALS];
-
-//     size_t i;
-//     measres_t res;
-//     for(i = 0; i < NTRIALS; i++) {
-//         res = measure_by_bsize(paras);
-//         tps[i] = res.tp;
-//         iopses[i] = res.iops;
-//     }
-
-//     bubble_sort(tps, NTRIALS);
-//     bubble_sort(iopses, NTRIALS);
-
-//     return is_inner_th(tps, NTRIALS) && is_inner_th(iopses, NTRIALS);
-// }
-
 size_t search_good_readbytes() {
     size_t len = 2;
     size_t opts[] = {512 MiB, 1 GiB};
     paras_t paras = {true, NOTNEED, NOTNEED, BSIZE,  true,
-                     1.,   1,         NOTNEED, NOTNEED};
+                     1.,   1,       NOTNEED, NOTNEED};
     size_t i;
     for(i = 0; i < len; i++) {
         paras.readbytes = opts[i];
