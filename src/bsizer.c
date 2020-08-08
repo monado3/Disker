@@ -130,7 +130,7 @@ size_t search_good_readbytes() {
             return opts[i];
         }
     }
-    perror_exit("found no good readbytes");
+    perror_exit("found no good readbytes");return 1;
 }
 
 measres_t measure_by_bsize(bool is_o_direct, bool is_trial, size_t bsize,
