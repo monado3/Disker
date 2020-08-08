@@ -75,19 +75,19 @@ def measure_random():
     p_fig.mkdir(parents=True, exist_ok=False)
     run(f"{p_bin/ 'randomer.out'} {p_log}", shell=True, check=True)
 
-    df = read_r_bsizes(p_exp)
+    df = read_r_bsizes(p_log)
     fig = plot_r_bsizes(df)
     fig.savefig(p_fig / 'r_01bsize.png')
 
-    df = read_r_regions(p_exp)
+    df = read_r_regions(p_log)
     fig = plot_r_regions(df)
     fig.savefig(p_fig / 'r_02bsize.png')
 
-    df = read_r_threads(p_exp)
+    df = read_r_threads(p_log)
     fig = plot_r_threads(df)
     fig.savefig(p_fig / 'r_03threads.png')
 
-    df = read_r_regions_mthreads(p_exp)
+    df = read_r_regions_mthreads(p_log)
     fig = plot_r_regions_mthreads(df)
     fig.savefig(p_fig / 'r_04regions_mthreads.png')
 
