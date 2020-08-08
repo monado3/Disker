@@ -173,13 +173,19 @@ void *p_measure(void *p) {
     if(is_o_direct) {
         if(posix_memalign(&blkbuf, 512, bsize))
             perror_exit("posix memalign");
+        off_t align_area = hdd_area / 512;
+        while(gNreads > 0) {
+            if(pread(fd, blkbuf, bsize, (rand() % align_area) * 512) == -1)
+                perror_exit("pread error");
+            gNreads--;
+        }
     } else {
         blkbuf = (char *)malloc(bsize);
-    }
-    while(gNreads > 0) {
-        if(pread(fd, blkbuf, bsize, rand() % hdd_area) == -1)
-            perror_exit("pread error");
-        gNreads--;
+        while(gNreads > 0) {
+            if(pread(fd, blkbuf, bsize, rand() % hdd_area) == -1)
+                perror_exit("pread error");
+            gNreads--;
+        }
     }
     return (void *)NULL;
 }
@@ -216,17 +222,24 @@ measres_t measure(paras_t paras) {
         if(is_o_direct) {
             if(posix_memalign(&blkbuf, 512, bsize))
                 perror_exit("posix memalign");
+            off_t align_area = hdd_area / 512;
+            gettimeofday(&start_tv, NULL);
+            for(i = 0; i < nreads; i++) {
+                lseek(fd, (rand() % align_area) * 512, SEEK_SET);
+                if(read(fd, blkbuf, bsize) == -1)
+                    perror_exit("read error");
+            }
+            gettimeofday(&end_tv, NULL);
         } else {
             blkbuf = (void *)malloc(bsize);
+            gettimeofday(&start_tv, NULL);
+            for(i = 0; i < nreads; i++) {
+                lseek(fd, rand() % hdd_area, SEEK_SET);
+                if(read(fd, blkbuf, bsize) == -1)
+                    perror_exit("read error");
+            }
+            gettimeofday(&end_tv, NULL);
         }
-        off_t align_area = hdd_area / 512;
-        gettimeofday(&start_tv, NULL);
-        for(i = 0; i < nreads; i++) {
-            lseek(fd, (rand() % align_area) * 512, SEEK_SET);
-            if(read(fd, blkbuf, bsize) == -1)
-                perror_exit("read error");
-        }
-        gettimeofday(&end_tv, NULL);
         free(blkbuf);
     } else { // multi threads
         gNreads = nreads;
