@@ -7,18 +7,19 @@
 
 ## Installation
 1. `$ ./install.sh`
-1. Edit some macros of `src/*.c` adjusting to your environemnt
+1. edit some macros of `src/*.c` & `src/*.h` adjusting to your environemnt
 
 ## Usage
 1. `$ poetry shell`
 1. `$ python main.py -abr`
 
 ## Architecture
-- main.py : broker of C & grapher
+- main.py : broker of C executables & grapher
 - grapher.py : tool for plotting
 - src/ : C source codes for microbenchmark
-- bin/ : Executables files build from src/
+- bin/ : binary files complied from src/
 - exp/ : **Not git tracked.** keeps log and figures of microbenchmark
+- doc/ : Reports on my envrironment using graphs & logs genereated by Disker (as a sample output)
 
 ## Knowledge
-- You have to make lseek address 512 Bytes aligned when O_DIRECT is on.
+- You have to make not only a buffer address but also lseek address 512 Bytes aligned when O_DIRECT is on.
