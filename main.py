@@ -3,7 +3,7 @@ from subprocess import run
 from pathlib import Path
 
 p_proj = Path(__file__).parent.resolve()
-p_exp = p_proj / 'exp'
+p_exps = p_proj / 'exp'
 p_bin = p_proj / 'bin'
 
 
@@ -36,29 +36,29 @@ def init_argparser():
 
 
 def get_exp_idx() -> int:
-    return len(list((p_exp.glob('./*')))) - 1
+    return len(list((p_exps.glob('./*')))) - 1
 
 
 def get_exp_paths(kind):
     expidx = get_exp_idx()
-    return p_exp / f'{expidx:02}{kind}', p_exp / f'{expidx:02}{kind}' / 'fig'
+    return p_exps / f'{expidx:02}{kind}', p_exps / f'{expidx:02}{kind}' / 'fig'
 
 
 def measure_by_bsize():
-    p_log, p_fig = get_exp_paths('bsize')
-    p_log.mkdir(parents=True, exist_ok=False)
-    run(f"{p_bin/ 'bsizer.out'} {p_log / 'log.csv'}", shell=True, check=True)
+    p_exp, p_fig = get_exp_paths('bsize')
+    p_exp.mkdir(parents=True, exist_ok=False)
+    run(f"{p_bin/ 'bsizer.out'} {p_exp / 'log.csv'}", shell=True, check=True)
 
 
 def measure_by_address():
-    p_log, p_fig = get_exp_paths('address')
-    p_log.mkdir(parents=True, exist_ok=False)
-    run(f"{p_bin/ 'addresser.out'} {p_log / 'log.csv'}", shell=True, check=True)
+    p_exp, p_fig = get_exp_paths('address')
+    p_exp.mkdir(parents=True, exist_ok=False)
+    run(f"{p_bin/ 'addresser.out'} {p_exp / 'log.csv'}", shell=True, check=True)
 
 
 def measure_random():
-    p_log, p_fig = get_exp_paths('random')
-    p_log = p_log / 'log'
+    p_exp, p_fig = get_exp_paths('random')
+    p_log = p_exp / 'log'
     p_log.mkdir(parents=True, exist_ok=False)
     run(f"{p_bin/ 'randomer.out'} {p_log}", shell=True, check=True)
 
