@@ -265,7 +265,7 @@ measres_t measure(paras_t paras) {
 
 void measure_by_bsizes(size_t nreads, char *logdir) {
     char logpath[100];
-    sprintf(logpath, "%s/01bsize.csv", logdir);
+    sprintf(logpath, "/%s/01bsize.csv", logdir);
 
     if((gFP = fopen(logpath, "w")) == NULL)
         perror_exit("open error");
@@ -291,7 +291,7 @@ void measure_by_bsizes(size_t nreads, char *logdir) {
 
 void measure_by_regions(size_t nreads, char *logdir) {
     char logpath[100];
-    sprintf(logpath, "%s/02region.csv", logdir);
+    sprintf(logpath, "/%s/02region.csv", logdir);
 
     if((gFP = fopen(logpath, "w")) == NULL)
         perror_exit("open error");
@@ -313,7 +313,7 @@ void measure_by_regions(size_t nreads, char *logdir) {
 
 void measure_by_threads(size_t nreads, char *logdir) {
     char logpath[100];
-    sprintf(logpath, "%s/03threads.csv", logdir);
+    sprintf(logpath, "/%s/03threads.csv", logdir);
 
     if((gFP = fopen(logpath, "w")) == NULL)
         perror_exit("open error");
@@ -335,7 +335,7 @@ void measure_by_threads(size_t nreads, char *logdir) {
 
 void measure_by_region_mthreads(size_t nreads, char *logdir) {
     char logpath[100];
-    sprintf(logpath, "%s/04regionmulti.csv", logdir);
+    sprintf(logpath, "/%s/04regionmulti.csv", logdir);
 
     if((gFP = fopen(logpath, "w")) == NULL)
         perror_exit("open error");
