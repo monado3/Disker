@@ -2,6 +2,8 @@ import argparse
 from subprocess import run
 from pathlib import Path
 
+from grapher import *
+
 p_proj = Path(__file__).parent.resolve()
 p_exps = p_proj / 'exp'
 p_bin = p_proj / 'bin'
@@ -49,11 +51,19 @@ def measure_by_bsize():
     p_exp.mkdir(parents=True, exist_ok=False)
     run(f"{p_bin/ 'bsizer.out'} {p_exp / 'log.csv'}", shell=True, check=True)
 
+    df = read_s_bsizes(p_exp)
+    fig = plot_s_bsizes(df)
+    fig.savefig(p_fig / 's_bsize.png')
+
 
 def measure_by_address():
     p_exp, p_fig = get_exp_paths('address')
     p_exp.mkdir(parents=True, exist_ok=False)
     run(f"{p_bin/ 'addresser.out'} {p_exp / 'log.csv'}", shell=True, check=True)
+
+    df = read_s_addresses(p_exp)
+    fig = plot_s_addresses(df)
+    fig.savefig(p_fig / 's_address.png')
 
 
 def measure_random():
@@ -62,10 +72,29 @@ def measure_random():
     p_log.mkdir(parents=True, exist_ok=False)
     run(f"{p_bin/ 'randomer.out'} {p_log}", shell=True, check=True)
 
+    df = read_r_bsizes(p_exp)
+    fig = plot_r_bsizes(df)
+    fig.savefig(p_fig / 'r_01bsize.png')
+
+    df = read_r_regions(p_exp)
+    fig = plot_r_regions(df)
+    fig.savefig(p_fig / 'r_02bsize.png')
+
+    df = read_r_threads(p_exp)
+    fig = plot_r_threads(df)
+    fig.savefig(p_fig / 'r_03threads.png')
+
+    df = read_r_regions_mthreads(p_exp)
+    fig = plot_r_regions_mthreads(df)
+    fig.savefig(p_fig / 'r_04regions_mthreads.png')
+
 
 def main():
     parser = init_argparser()
     args = parser.parse_args()
+
+    plt_settings()
+
     if args.address:
         measure_by_address()
     if args.block:
