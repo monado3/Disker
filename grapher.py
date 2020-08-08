@@ -126,7 +126,7 @@ def plot_r_regions_mthreads(df):
     fig, (axtp, axiops) = _base_tp_iops_fig(df, 'region')
 
     axtp.set_xscale('log')
-    axiops.set_xlabel('region (ratio')
+    axiops.set_xlabel('region (ratio)')
     axtp.set_title(
-        f'Rand. Access Microbenchmark by region ratio in {nthreads} threads ({nreads=}')
+        f'Rand. Access Microbenchmark by region ratio in {nthreads} threads ({nreads=})')
     return fig
