@@ -57,7 +57,10 @@ def measure_by_address():
 
 
 def measure_random():
-    pass
+    p_log, p_fig = get_exp_paths('random')
+    p_log = p_log / 'log'
+    p_log.mkdir(parents=True, exist_ok=False)
+    run(f"{p_bin/ 'randomer.out'} {p_log}", shell=True, check=True)
 
 
 def main():
