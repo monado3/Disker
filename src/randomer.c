@@ -177,7 +177,8 @@ void *p_measure(void *p) {
         blkbuf = (char *)malloc(bsize);
     }
     while(gNreads > 0) {
-        pread(fd, blkbuf, bsize, rand() % hdd_area);
+        if(pread(fd, blkbuf, bsize, rand() % hdd_area) == -1)
+            perror_exit("pread error");
         gNreads--;
     }
 }
@@ -339,14 +340,16 @@ void measure_by_region_mthreads(size_t nreads, char *logdir) {
     if((gFP = fopen(logpath, "w")) == NULL)
         perror_exit("open error");
 
-    fprintf(gFP, "Disker randomer regions by mutlithreads output\n" INFOHEADER CSVHEADER,
-            HDDFILE, nreads);
+    fprintf(
+        gFP,
+        "Disker randomer regions by mutlithreads output\n" INFOHEADER CSVHEADER,
+        HDDFILE, nreads);
 
     size_t i, len = 10;
     for(i = 1; i <= len; i++) {
-        paras_t direct = {false,   nreads,      DEFBSIZE, true,
+        paras_t direct = {false,   nreads,     DEFBSIZE, true,
                           i * 0.1, MAXNTREADS, NOTNEED,  NOTNEED};
-        paras_t indirect = {false,   nreads,      DEFBSIZE, false,
+        paras_t indirect = {false,   nreads,     DEFBSIZE, false,
                             i * 0.1, MAXNTREADS, NOTNEED,  NOTNEED};
         measure(direct);
         measure(indirect);
