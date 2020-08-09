@@ -81,7 +81,7 @@ def measure_random():
 
     df = read_r_regions(p_log)
     fig = plot_r_regions(df)
-    fig.savefig(p_fig / 'r_02bsize.png')
+    fig.savefig(p_fig / 'r_02region.png')
 
     df = read_r_threads(p_log)
     fig = plot_r_threads(df)
