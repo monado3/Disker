@@ -12,7 +12,6 @@
 ![](s_address.png)
 
 #### by block size
-- read region: full
 ![](s_bsize.png)
 
 ### Rand.
