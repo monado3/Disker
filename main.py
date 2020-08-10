@@ -98,12 +98,12 @@ def main():
 
     plt_settings()
 
-    if args.address:
-        measure_by_address()
     if args.block:
         measure_by_bsize()
     if args.random:
         measure_random()
+    if args.address:
+        measure_by_address()
 
 
 if __name__ == '__main__':
