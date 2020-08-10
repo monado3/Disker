@@ -1,5 +1,18 @@
 import matplotlib.pyplot as plt
 import pandas as pd
+from humanize import naturalsize
+
+
+def natsize(value, **kwargs):
+    return naturalsize(value, binary=True, **kwargs)
+
+
+def vec_natsize(lis):
+    return [natsize(x, format='%.0f') for x in lis]
+
+
+def const_accesser(df, lis):
+    return [df.loc[0, x] for x in lis]
 
 
 def plt_settings():
@@ -24,10 +37,11 @@ def _base_tp_iops_fig(df, x):
     fig, (axtp, axiops) = plt.subplots(
         2, 1, sharex=True, figsize=(10, 10), dpi=250)
 
-    axtp.plot(df[x], df['direct_tp(MB/sec)'], label='w/ O_DIRECT')
-    axtp.plot(df[x], df['indirect_tp(MB/sec)'], label='w/o O_DIRECT')
-    axiops.plot(df[x], df['direct_iops'], label='w/ O_DIRECT')
-    axiops.plot(df[x], df['indirect_iops'], label='w/o O_DIRECT')
+    axtp.plot(df[x], df['direct_tp(MB/sec)'], label='w/ O_DIRECT', marker='+')
+    axtp.plot(df[x], df['indirect_tp(MB/sec)'],
+              label='w/o O_DIRECT', marker='x')
+    axiops.plot(df[x], df['direct_iops'], label='w/ O_DIRECT', marker='+')
+    axiops.plot(df[x], df['indirect_iops'], label='w/o O_DIRECT', marker='x')
 
     axtp.legend()
     axiops.legend()
@@ -36,19 +50,27 @@ def _base_tp_iops_fig(df, x):
     return fig, (axtp, axiops)
 
 
+def set_bsize_xtick(axiops, df):
+    axiops.set_xscale('log')
+    axiops.set_xticks(df['bsize'])
+    axiops.set_xticklabels(vec_natsize(
+        df['bsize']), fontsize='small', rotation=45)
+    axiops.set_xlabel('block size (Bytes)')
+    return axiops
+
+
 def read_s_bsizes(p):
     return pd.read_csv(p / 'log.csv', skiprows=3)
 
 
 def plot_s_bsizes(df):
-    readarea = df.loc[0, 'readbytes']
+    nthreads, readarea = const_accesser(df, ['nthreads', 'readbytes'])
 
     fig, (axtp, axiops) = _base_tp_iops_fig(df, 'bsize')
+    axiops = set_bsize_xtick(axiops, df)
 
-    axtp.set_xscale('log')
-    axiops.set_xlabel('block size (Bytes)')
     axtp.set_title(
-        f'Seq. Access Microbenchmark by block size ({readarea=:.3e} Byte)')
+        f'Seq. Access Microbenchmark by block size\n({nthreads=}, readarea={natsize(readarea)})')
     return fig
 
 
@@ -57,16 +79,19 @@ def read_s_addresses(p):
 
 
 def plot_s_addresses(df):
-    bsize = df.loc[0, 'bsize']
+    bsize, nthreads, readarea = const_accesser(
+        df, ['bsize', 'nthreads', 'readbytes'])
 
     fig, ax = plt.subplots(figsize=(10, 5), dpi=250)
 
-    ax.plot(df['address'], df['direct_tp(MB/sec)'], label='w/ O_DIRECT')
+    ax.plot(df['address'], df['direct_tp(MB/sec)'],
+            label='w/ O_DIRECT', linewidth=0.5)
 
     ax.legend()
     ax.set_xlabel('address')
     ax.set_ylabel('throughput (MB/sec)')
-    ax.set_title(f'Seq. Access Microbenchmark by address ({bsize=:.3e} Byte)')
+    ax.set_title(
+        f'Seq. Access Microbenchmark by address\n(bsize={natsize(bsize)}, {nthreads=}, readarea={natsize(readarea)})')
     return fig
 
 
@@ -75,13 +100,14 @@ def read_r_bsizes(p):
 
 
 def plot_r_bsizes(df):
-    nreads = df.loc[0, 'nreads']
+    region, nthreads, nreads = const_accesser(
+        df, ['region', 'nthreads', 'nreads'])
 
     fig, (axtp, axiops) = _base_tp_iops_fig(df, 'bsize')
+    axiops = set_bsize_xtick(axiops, df)
 
-    axtp.set_xscale('log')
-    axiops.set_xlabel('block size (Bytes)')
-    axtp.set_title(f'Rand. Access Microbenchmark by block size ({nreads=})')
+    axtp.set_title(
+        f'Rnd. Access Microbenchmark by block size\n({region=:.1f}, {nthreads=} {nreads=})')
     return fig
 
 
@@ -90,13 +116,15 @@ def read_r_regions(p):
 
 
 def plot_r_regions(df):
-    nreads = df.loc[0, 'nreads']
+    bsize, nthreads, nreads = const_accesser(
+        df,  ['bsize', 'nthreads', 'nreads'])
 
     fig, (axtp, axiops) = _base_tp_iops_fig(df, 'region')
 
     axtp.set_xscale('log')
     axiops.set_xlabel('region (ratio)')
-    axtp.set_title(f'Rand. Access Microbenchmark by region ratio ({nreads=})')
+    axtp.set_title(
+        f'Rnd. Access Microbenchmark by region ratio\n(bsize={natsize(bsize)}, {nthreads=} {nreads=})')
     return fig
 
 
@@ -105,13 +133,13 @@ def read_r_threads(p):
 
 
 def plot_r_threads(df):
-    nreads = df.loc[0, 'nreads']
+    bsize, region, nreads = const_accesser(df, ['bsize', 'region', 'nreads'])
 
     fig, (axtp, axiops) = _base_tp_iops_fig(df, 'nthreads')
 
     axiops.set_xlabel('No. of threads')
     axtp.set_title(
-        f'Rand. Access Microbenchmark by No. of threads ({nreads=})')
+        f'Rnd. Access Microbenchmark by No. of threads\n(bsize={natsize(bsize)}, {region=:.1f}, {nreads=})')
     return fig
 
 
@@ -120,13 +148,13 @@ def read_r_regions_mthreads(p):
 
 
 def plot_r_regions_mthreads(df):
-    nreads = df.loc[0, 'nreads']
-    nthreads = df.loc[0, 'nthreads']
+    bsize, nthreads, nreads = const_accesser(
+        df, ['bsize', 'nthreads', 'nreads'])
 
     fig, (axtp, axiops) = _base_tp_iops_fig(df, 'region')
 
     axtp.set_xscale('log')
     axiops.set_xlabel('region (ratio)')
     axtp.set_title(
-        f'Rand. Access Microbenchmark by region ratio in {nthreads} threads ({nreads=})')
+        f'Rnd. Access Microbenchmark by region ratio\n(bsize={natsize(bsize)}, {nthreads=} {nreads=})')
     return fig

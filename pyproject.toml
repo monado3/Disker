@@ -11,6 +11,7 @@ matplotlib = "^3.3.0"
 japanize-matplotlib = "^1.1.2"
 seaborn = "^0.10.1"
 dask = "^2.22.0"
+humanize = "^2.5.0"
 
 [tool.poetry.dev-dependencies]
 autopep8 = "^1.5.4"
