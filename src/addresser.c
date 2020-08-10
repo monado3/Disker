@@ -42,8 +42,8 @@ void measure_by_addresses(paras_t paras) {
 
         real = calc_elapsed(start_tv, end_tv);
         tp = ((double)BBYTES / real) * 1e-6; // Seq. Read Throughput (MB/sec)
-        fprintf(gFP, "%zu,%f,%zu,%zu,%zu,,%f,,,\n", paras.bsize, paras.region,
-                paras.nthreads, hdd_ofst, hdd_size, tp);
+        fprintf(gFP, "%zu,,%zu,%zu,%zu,,%f,,,\n", paras.bsize, paras.nthreads,
+                hdd_ofst, hdd_size, tp);
 
         hdd_ofst = lseek(fd, 0, SEEK_CUR);
     }

@@ -39,7 +39,6 @@ measres_t measure_by_bsize(paras_t paras) {
     size_t readbytes = paras.readbytes;
     size_t bsize = paras.bsize;
     bool is_o_direct = paras.is_o_direct;
-    double region = paras.region;
     size_t nthreads = paras.nthreads;
 
     printf("started measuring disk performance by %zu\n", bsize);
@@ -86,8 +85,8 @@ measres_t measure_by_bsize(paras_t paras) {
         return res;
 
     if(is_o_direct)
-        fprintf(gFP, "%zu,%f,%zu,,%zu,%zu,%f,%f", bsize, region, nthreads,
-                readbytes, nreads, tp, iops);
+        fprintf(gFP, "%zu,,%zu,,%zu,%zu,%f,%f", bsize, nthreads, readbytes,
+                nreads, tp, iops);
     else
         fprintf(gFP, ",%f,%f\n", tp, iops);
 
