@@ -12,7 +12,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define DEFBSIZE 4 KiB
+#define DEFBSIZE 512
 #define DEFREGION 1.
 #define DEFNTHREADS 1
 #define MAXNTREADS 100
@@ -40,27 +40,16 @@ size_t search_good_nreads(paras_t paras) {
 void *p_measure(void *p) {
     paras_t *paras = (paras_t *)p;
     size_t bsize = paras->bsize;
-    bool is_o_direct = paras->is_o_direct;
     int fd = paras->fd;
-    off_t hdd_area = paras->hdd_area;
+    off_t align_space = paras->align_space;
 
     void *blkbuf;
-    if(is_o_direct) {
-        if(posix_memalign(&blkbuf, 512, bsize))
-            perror_exit("posix memalign");
-        off_t align_area = hdd_area / 512;
-        while(gNreads > 0) {
-            if(pread(fd, blkbuf, bsize, (rand() % align_area) * 512) == -1)
-                perror_exit("pread error");
-            gNreads--;
-        }
-    } else {
-        blkbuf = (char *)malloc(bsize);
-        while(gNreads > 0) {
-            if(pread(fd, blkbuf, bsize, rand() % hdd_area) == -1)
-                perror_exit("pread error");
-            gNreads--;
-        }
+    if(posix_memalign(&blkbuf, 512, bsize))
+        perror_exit("posix memalign");
+    while(gNreads > 0) {
+        if(pread(fd, blkbuf, bsize, (rand() % align_space) * 512) == -1)
+            perror_exit("pread error");
+        gNreads--;
     }
     return (void *)NULL;
 }
@@ -88,38 +77,26 @@ measres_t measure(paras_t paras) {
     if(fd < 0)
         perror_exit("open error");
 
-    off_t hdd_area = lseek(fd, 0, SEEK_END) * region;
-    lseek(fd, rand() % hdd_area, SEEK_SET);
+    off_t align_space = (lseek(fd, 0, SEEK_END) * region) / 512;
+    lseek(fd, (rand() % align_space) * 512, SEEK_SET);
 
     size_t i;
     if(nthreads < 2) { // single thread
         void *blkbuf;
-        if(is_o_direct) {
-            if(posix_memalign(&blkbuf, 512, bsize))
-                perror_exit("posix memalign");
-            off_t align_area = hdd_area / 512;
-            gettimeofday(&start_tv, NULL);
-            for(i = 0; i < nreads; i++) {
-                lseek(fd, (rand() % align_area) * 512, SEEK_SET);
-                if(read(fd, blkbuf, bsize) == -1)
-                    perror_exit("read error");
-            }
-            gettimeofday(&end_tv, NULL);
-        } else {
-            blkbuf = (void *)malloc(bsize);
-            gettimeofday(&start_tv, NULL);
-            for(i = 0; i < nreads; i++) {
-                lseek(fd, rand() % hdd_area, SEEK_SET);
-                if(read(fd, blkbuf, bsize) == -1)
-                    perror_exit("read error");
-            }
-            gettimeofday(&end_tv, NULL);
+        if(posix_memalign(&blkbuf, 512, bsize))
+            perror_exit("posix memalign");
+        gettimeofday(&start_tv, NULL);
+        for(i = 0; i < nreads; i++) {
+            lseek(fd, (rand() % align_space) * 512, SEEK_SET);
+            if(read(fd, blkbuf, bsize) == -1)
+                perror_exit("read error");
         }
+        gettimeofday(&end_tv, NULL);
         free(blkbuf);
     } else { // multi threads
         gNreads = nreads;
         paras.fd = fd;
-        paras.hdd_area = hdd_area;
+        paras.align_space = align_space;
         pthread_t pthreads[nthreads];
         for(i = 0; i < nthreads; i++) {
             pthread_t p;

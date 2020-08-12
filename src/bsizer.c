@@ -46,17 +46,15 @@ measres_t measure_by_bsize(paras_t paras) {
 
     struct timeval start_tv, end_tv;
 
-    int fd;
     void *blkbuf;
-    if(is_o_direct) {
-        if(posix_memalign(&blkbuf, 512, bsize))
-            perror_exit("posix memalign");
-        fd = open(HDDFILE, O_RDONLY | O_DIRECT);
-    } else {
-        blkbuf = (char *)malloc(bsize);
-        fd = open(HDDFILE, O_RDONLY);
-    }
+    if(posix_memalign(&blkbuf, 512, bsize))
+        perror_exit("posix memalign");
 
+    int fd;
+    if(is_o_direct)
+        fd = open(HDDFILE, O_RDONLY | O_DIRECT);
+    else
+        fd = open(HDDFILE, O_RDONLY);
     if(fd < 0)
         perror_exit("open error");
 

@@ -24,7 +24,7 @@ typedef struct {
     double region;
     size_t nthreads;
     int fd;
-    off_t hdd_area;
+    off_t align_space;
 } paras_t;
 
 double calc_elapsed(struct timeval start_tv, struct timeval end_tv);
