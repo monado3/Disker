@@ -2,7 +2,7 @@
 ---
 
 ## Env
-- kugenuma
+- kugenuma26
 - /dev/sdb1
 - 31TB, RAID HDD
 
