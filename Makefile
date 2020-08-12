@@ -1,16 +1,16 @@
 CC = gcc
-CFLAGS = -Wall
+CFLAGS = -Wall -msse2 -DSFMT_MEXP=19937
 
 all: addresser bsizer randomer
 
-addresser: mylib.o addresser.o
-	$(CC) $(CFLAGS) -o bin/addresser.out bin/mylib.o bin/addresser.o
+addresser: SFMT.o mylib.o addresser.o
+	$(CC) $(CFLAGS) -o bin/addresser.out bin/mylib.o bin/SFMT.o bin/addresser.o
 
-bsizer: mylib.o bsizer.o
-	$(CC) $(CFLAGS) -o bin/bsizer.out bin/mylib.o bin/bsizer.o
+bsizer: SFMT.o mylib.o bsizer.o
+	$(CC) $(CFLAGS) -o bin/bsizer.out bin/mylib.o bin/SFMT.o bin/bsizer.o
 
-randomer: mylib.o randomer.o
-	$(CC) $(CFLAGS) -pthread -o bin/randomer.out bin/mylib.o bin/randomer.o
+randomer: SFMT.o mylib.o randomer.o
+	$(CC) $(CFLAGS) -pthread -o bin/randomer.out bin/mylib.o bin/SFMT.o bin/randomer.o
 
 mylib.o : src/mylib.c
 	$(CC) $(CFLAGS) -c src/mylib.c -o bin/mylib.o
@@ -23,6 +23,9 @@ bsizer.o : src/bsizer.c
 
 randomer.o : src/randomer.c
 	$(CC) $(CFLAGS) -c src/randomer.c -o bin/randomer.o
+
+SFMT.o : src/SFMT.c
+	$(CC) $(CFLAGS) -c src/SFMT.c -o bin/SFMT.o
 
 clean:
 	$(RM) bin/*.out bin/*.o
