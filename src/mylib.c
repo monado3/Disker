@@ -17,14 +17,10 @@
 #define NTRIALS 3 // must be odd
 #define GOODTH 0.1
 
-static sfmt_t sfmt;
-
 // Return a random integer between 0 and max inclusive.
-off_t myrand(off_t max) {
-    return (off_t)sfmt_genrand_uint64(&sfmt) % (max + 1);
+off_t myrand(off_t max, sfmt_t *sfmt) {
+    return (off_t)sfmt_genrand_uint64(sfmt) % (max + 1);
 }
-
-void mysrand(uint32_t seed) { sfmt_init_gen_rand(&sfmt, seed); }
 
 double calc_elapsed(struct timeval start_tv, struct timeval end_tv) {
     return (end_tv.tv_sec - start_tv.tv_sec) +

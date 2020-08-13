@@ -46,8 +46,10 @@ void *p_measure(void *p) {
     void *blkbuf;
     if(posix_memalign(&blkbuf, 512, bsize))
         perror_exit("posix memalign");
+    sfmt_t sfmt;
+    sfmt_init_gen_rand(&sfmt, rand());
     while(gNreads > 0) {
-        if(pread(fd, blkbuf, bsize, myrand(align_space) * 512) == -1)
+        if(pread(fd, blkbuf, bsize, myrand(align_space, &sfmt) * 512) == -1)
             perror_exit("pread error");
         gNreads--;
     }
@@ -78,16 +80,17 @@ measres_t measure(paras_t paras) {
         perror_exit("open error");
 
     off_t align_space = (lseek(fd, 0, SEEK_END) * region) / 512;
-    lseek(fd, myrand(align_space) * 512, SEEK_SET);
 
     size_t i;
     if(nthreads < 2) { // single thread
         void *blkbuf;
         if(posix_memalign(&blkbuf, 512, bsize))
             perror_exit("posix memalign");
+        sfmt_t sfmt;
+        sfmt_init_gen_rand(&sfmt, rand());
         gettimeofday(&start_tv, NULL);
         for(i = 0; i < nreads; i++) {
-            lseek(fd, myrand(align_space) * 512, SEEK_SET);
+            lseek(fd, myrand(align_space, &sfmt) * 512, SEEK_SET);
             if(read(fd, blkbuf, bsize) == -1)
                 perror_exit("read error");
         }
@@ -233,8 +236,6 @@ int main(int argc, char **argv) {
         show_usage(argv[0]);
     char *logdir = argv[1];
     printf("started measureing random disk performance\n");
-
-    mysrand(0);
 
     drop_raid_cache();
 

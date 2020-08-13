@@ -29,8 +29,7 @@ typedef struct {
     off_t align_space;
 } paras_t;
 
-off_t myrand(off_t max);
-void mysrand(uint32_t seed);
+off_t myrand(off_t max, sfmt_t *sfmt);
 double calc_elapsed(struct timeval start_tv, struct timeval end_tv);
 void perror_exit(char *msg);
 void show_usage(char *program_name);
