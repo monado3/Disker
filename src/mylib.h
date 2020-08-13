@@ -1,3 +1,10 @@
+#ifdef __linux__
+#define _GNU_SOURCE
+#define _FILE_OFFSET_BITS 64
+#define _LARGEFILE_SOURCE
+#define _LARGEFILE64_SOURCE
+#endif
+
 #ifndef MYLIBH
 #define MYLIBH
 
