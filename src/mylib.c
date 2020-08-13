@@ -11,7 +11,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define DRCREADGB 200
+#define DRCREADGB 100
 #define DRCREADBUFGB 1
 
 #define NTRIALS 3 // must be odd
