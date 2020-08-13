@@ -6,7 +6,8 @@
 #include <stdio.h>
 #include <sys/time.h>
 
-#define HDDFILE "/dev/sdb1"
+// #define HDDFILE "/dev/sdb1" // for kugenuma26
+#define HDDFILE "/dev/sdb" // for kugenuma29
 
 #define KiB *1024
 #define MiB *1048576
