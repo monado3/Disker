@@ -1,6 +1,7 @@
 #define _GNU_SOURCE
 
 #include "mylib.h"
+#include <assert.h>
 #include <fcntl.h>
 #include <pthread.h>
 #include <stdbool.h>
@@ -82,6 +83,7 @@ measres_t measure(paras_t paras) {
         perror_exit("open error");
 
     off_t align_space = (lseek(fd, 0, SEEK_END) * region) / 512;
+    assert(align_space > 0);
 
     size_t i;
     if(nthreads < 2) { // single thread
@@ -92,7 +94,8 @@ measres_t measure(paras_t paras) {
         sfmt_init_gen_rand(&sfmt, rand());
         gettimeofday(&start_tv, NULL);
         for(i = 0; i < nreads; i++) {
-            lseek(fd, myrand(align_space, &sfmt) * 512, SEEK_SET);
+            if(lseek(fd, myrand(align_space, &sfmt) * 512, SEEK_SET) == -1)
+                perror_exit("lseek error");
             if(read(fd, blkbuf, bsize) == -1)
                 perror_exit("read error");
         }
