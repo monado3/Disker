@@ -50,9 +50,7 @@ void *p_measure(void *p) {
     sfmt_t sfmt;
     sfmt_init_gen_rand(&sfmt, rand());
     while(gNreads > 0) {
-        off_t ofst = myrand(align_space, &sfmt) * 512;
-        printf("pread ofst=%ld\n", ofst);
-        if(pread(fd, blkbuf, bsize, ofst) == -1)
+        if(pread(fd, blkbuf, bsize, myrand(align_space, &sfmt) * 512) == -1)
             perror_exit("pread error");
         gNreads--;
     }
