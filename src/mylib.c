@@ -19,7 +19,7 @@
 
 // Return a random integer between 0 and max inclusive.
 off_t myrand(off_t max, sfmt_t *sfmt) {
-    return (off_t)sfmt_genrand_uint64(sfmt) % (max + 1);
+    return (off_t)(sfmt_genrand_uint64(sfmt) % (max + 1));
 }
 
 double calc_elapsed(struct timeval start_tv, struct timeval end_tv) {
