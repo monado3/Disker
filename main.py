@@ -2,7 +2,7 @@ import argparse
 from subprocess import run
 from pathlib import Path
 
-from .mylib.grapher import *
+from mylib.grapher import *
 
 p_proj = Path(__file__).parent.resolve()
 p_exps = p_proj / 'exp'
