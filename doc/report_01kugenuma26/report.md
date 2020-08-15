@@ -1,5 +1,6 @@
 # Experiment Report 01
 ---
+Found a bug in random access of Disker at the time of measuring
 
 ## Env
 - kugenuma26
@@ -14,15 +15,15 @@
 #### by block size
 ![](s_bsize.png)
 
-### Rand.
-#### by block size
+### ~~Rand.~~
+#### ~~by block size~~
 ![](r_01bsize.png)
 
-#### by region ratio
+#### ~~by region ratio~~
 ![](r_02region.png)
 
-#### by No. of threads
+#### ~~by No. of threads~~
 ![](r_03threads.png)
 
-#### by region ratio in 100 threads
+#### ~~by region ratio in 100 threads~~
 ![](r_04regions_mthreads.png)
