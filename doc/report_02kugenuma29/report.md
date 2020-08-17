@@ -1,5 +1,8 @@
-# Experiment Report 02
+# Experiment Report 02 (2020/08/17)
 ---
+
+## Objective
+Deeper understanding of disks characteristic by measuring approach (not for just knowing disk performance)
 
 ## Env
 ```
@@ -37,23 +40,34 @@ CPU(s):              56
                 configuration: ansiversion=6 logicalsectorsize=512 sectorsize=512
 ```
 
+## Experiment settings
+- Measureing trail is only once on each experiment condition.
+    - Because flucutation of the results are confirmed that their margins of errors are within plus/minus 10 percent by 3times test trials before each acutual measuring.
+
 ## Results
 ### Seq.
 #### by address
+The throughput gets step-wise lower, as an address gets larger. This is caused by `Zone Bit Recording` of HDD.
 ![](s_address.png)
 
 #### by block size
+- When O_DIRECT, the throughput is low in small block size area probably because the block sizes are too small to cause too many read() callings in the first place. Furthermore, looking-ahead optimization by OS doesn't work due to O_DIRECT mode.
+- When not O_DIRECT, the throughput is constant through the change of block size. This is because 512B is still too small block size, but looing-ahead optimization works this time.
 ![](s_bsize.png)
 
 ### Rand.
 #### by block size
+The reason rnd. accesses with large block sizes are high-throughput is they are virtually just sequential accesses.
 ![](r_01bsize.png)
 
 #### by region ratio
+When the area you access is a small portion of HDD space, the ratio of cache-hit gets higher and then the performance gets better.
 ![](r_02region.png)
 
 #### by No. of threads
+Concurrent Multi threads accesses are scheduled out-of-order wise by HDD Controller, which lessen extra rotation of disks.
 ![](r_03threads.png)
 
 #### by region ratio in 100 threads
+The effect of cache still works even in a multi-threads situation.
 ![](r_04regions_mthreads.png)
