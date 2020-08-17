@@ -1,5 +1,3 @@
-#define _GNU_SOURCE
-
 #include "mylib.h"
 #include <fcntl.h>
 #include <stdbool.h>

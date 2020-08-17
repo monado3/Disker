@@ -1,5 +1,3 @@
-#define _GNU_SOURCE
-
 #include "mylib.h"
 #include "SFMT.h"
 #include <fcntl.h>

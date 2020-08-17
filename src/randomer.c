@@ -1,5 +1,3 @@
-#define _GNU_SOURCE
-
 #include "mylib.h"
 #include <assert.h>
 #include <fcntl.h>
