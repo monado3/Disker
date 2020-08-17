@@ -21,6 +21,6 @@ echo `awk '( $1 == "MemTotal:" ) { print $2/1048576 }' /proc/meminfo` "GB"
 echo ''
 
 echo '[Storage Info]'
-$1
+echo $1
 lshw | grep -C 6 -6 $1 # $1 = device file
 echo ''
