@@ -15,6 +15,12 @@ def const_accesser(df, lis):
     return [df.loc[0, x] for x in lis]
 
 
+def zeropointfy(ax):
+    bt, top = ax.get_ylim()
+    if bt > 0:
+        ax.set_ylim(0)
+
+
 def plt_settings():
     plt.rcParams['font.size'] = 8
 
@@ -43,6 +49,8 @@ def _base_tp_iops_fig(df, x):
     axiops.plot(df[x], df['direct_iops'], label='w/ O_DIRECT', marker='+')
     axiops.plot(df[x], df['indirect_iops'], label='w/o O_DIRECT', marker='x')
 
+    zeropointfy(axtp)
+    zeropointfy(axiops)
     axtp.legend()
     axiops.legend()
     axtp.set_ylabel('throughput (MB/sec)')
@@ -50,7 +58,7 @@ def _base_tp_iops_fig(df, x):
     return fig, (axtp, axiops)
 
 
-def set_bsize_xtick(axiops, df):
+def _set_bsize_xtick(axiops, df):
     axiops.set_xscale('log')
     axiops.set_xticks(df['bsize'])
     axiops.set_xticklabels(vec_natsize(
@@ -67,7 +75,7 @@ def plot_s_bsizes(df):
     nthreads, readarea = const_accesser(df, ['nthreads', 'readbytes'])
 
     fig, (axtp, axiops) = _base_tp_iops_fig(df, 'bsize')
-    axiops = set_bsize_xtick(axiops, df)
+    axiops = _set_bsize_xtick(axiops, df)
 
     axtp.set_title(
         f'Seq. Access Microbenchmark by block size\n({nthreads=}, readarea={natsize(readarea)})')
@@ -87,6 +95,7 @@ def plot_s_addresses(df):
     ax.plot(df['address'], df['direct_tp(MB/sec)'],
             label='w/ O_DIRECT', linewidth=0.5)
 
+    zeropointfy(ax)
     ax.legend()
     ax.set_xlabel('address')
     ax.set_ylabel('throughput (MB/sec)')
@@ -104,7 +113,7 @@ def plot_r_bsizes(df):
         df, ['region', 'nthreads', 'nreads'])
 
     fig, (axtp, axiops) = _base_tp_iops_fig(df, 'bsize')
-    axiops = set_bsize_xtick(axiops, df)
+    axiops = _set_bsize_xtick(axiops, df)
 
     axtp.set_title(
         f'Rnd. Access Microbenchmark by block size\n({region=:.1f}, {nthreads=} {nreads=})')
