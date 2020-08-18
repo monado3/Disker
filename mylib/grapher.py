@@ -72,13 +72,13 @@ def read_s_bsizes(p):
 
 
 def plot_s_bsizes(df):
-    nthreads, readarea = const_accesser(df, ['nthreads', 'readbytes'])
+    rw, nthreads, rwarea = const_accesser(df, ['rw', 'nthreads', 'rwbytes'])
 
     fig, (axtp, axiops) = _base_tp_iops_fig(df, 'bsize')
     axiops = _set_bsize_xtick(axiops, df)
 
     axtp.set_title(
-        f'Seq. Access Microbenchmark by block size\n({nthreads=}, readarea={natsize(readarea)})')
+        f'Seq. {rw} Microbenchmark by block size\n({nthreads=}, rwarea={natsize(rwarea)})')
     return fig
 
 
@@ -87,8 +87,8 @@ def read_s_addresses(p):
 
 
 def plot_s_addresses(df):
-    bsize, nthreads, readarea = const_accesser(
-        df, ['bsize', 'nthreads', 'readbytes'])
+    rw = bsize, nthreads, rwarea = const_accesser(
+        df, ['rw', 'bsize', 'nthreads', 'rwbytes'])
 
     fig, ax = plt.subplots(figsize=(10, 5), dpi=250)
 
@@ -100,7 +100,7 @@ def plot_s_addresses(df):
     ax.set_xlabel('address')
     ax.set_ylabel('throughput (MB/sec)')
     ax.set_title(
-        f'Seq. Access Microbenchmark by address\n(bsize={natsize(bsize)}, {nthreads=}, readarea={natsize(readarea)})')
+        f'Seq. {rw} Microbenchmark by address\n(bsize={natsize(bsize)}, {nthreads=}, rwarea={natsize(rwarea)})')
     return fig
 
 
@@ -109,14 +109,14 @@ def read_r_bsizes(p):
 
 
 def plot_r_bsizes(df):
-    region, nthreads, nreads = const_accesser(
-        df, ['region', 'nthreads', 'nreads'])
+    rw, region, nthreads, nios = const_accesser(
+        df, ['rw', 'region', 'nthreads', 'nios'])
 
     fig, (axtp, axiops) = _base_tp_iops_fig(df, 'bsize')
     axiops = _set_bsize_xtick(axiops, df)
 
     axtp.set_title(
-        f'Rnd. Access Microbenchmark by block size\n({region=:.1f}, {nthreads=} {nreads=})')
+        f'Rnd. {rw} Microbenchmark by block size\n({region=:.1f}, {nthreads=} {nios=})')
     return fig
 
 
@@ -125,15 +125,15 @@ def read_r_regions(p):
 
 
 def plot_r_regions(df):
-    bsize, nthreads, nreads = const_accesser(
-        df,  ['bsize', 'nthreads', 'nreads'])
+    rw, bsize, nthreads, nios = const_accesser(
+        df,  ['rw', 'bsize', 'nthreads', 'nios'])
 
     fig, (axtp, axiops) = _base_tp_iops_fig(df, 'region')
 
     axtp.set_xscale('log')
     axiops.set_xlabel('region (ratio)')
     axtp.set_title(
-        f'Rnd. Access Microbenchmark by region ratio\n(bsize={natsize(bsize)}, {nthreads=} {nreads=})')
+        f'Rnd. {rw} Microbenchmark by region ratio\n(bsize={natsize(bsize)}, {nthreads=} {nios=})')
     return fig
 
 
@@ -142,13 +142,14 @@ def read_r_threads(p):
 
 
 def plot_r_threads(df):
-    bsize, region, nreads = const_accesser(df, ['bsize', 'region', 'nreads'])
+    rw, bsize, region, nios = const_accesser(
+        df, ['rw', 'bsize', 'region', 'nios'])
 
     fig, (axtp, axiops) = _base_tp_iops_fig(df, 'nthreads')
 
     axiops.set_xlabel('No. of threads')
     axtp.set_title(
-        f'Rnd. Access Microbenchmark by No. of threads\n(bsize={natsize(bsize)}, {region=:.1f}, {nreads=})')
+        f'Rnd. {rw} Microbenchmark by No. of threads\n(bsize={natsize(bsize)}, {region=:.1f}, {nios=})')
     return fig
 
 
@@ -157,13 +158,13 @@ def read_r_regions_mthreads(p):
 
 
 def plot_r_regions_mthreads(df):
-    bsize, nthreads, nreads = const_accesser(
-        df, ['bsize', 'nthreads', 'nreads'])
+    rw, bsize, nthreads, nios = const_accesser(
+        df, ['rw', 'bsize', 'nthreads', 'nios'])
 
     fig, (axtp, axiops) = _base_tp_iops_fig(df, 'region')
 
     axtp.set_xscale('log')
     axiops.set_xlabel('region (ratio)')
     axtp.set_title(
-        f'Rnd. Access Microbenchmark by region ratio\n(bsize={natsize(bsize)}, {nthreads=} {nreads=})')
+        f'Rnd. {rw} Microbenchmark by region ratio\n(bsize={natsize(bsize)}, {nthreads=} {nios=})')
     return fig
