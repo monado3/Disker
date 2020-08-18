@@ -13,6 +13,8 @@
 1. `$ poetry shell`
 1. `$ python main.py --read --write -abr`
 
+**Warning: Write measuring could logically destroy the HDD. You should prepare a destructible device file.**
+
 ## Architecture
 - main.py : broker of C executables & grapher
 - grapher.py : tool for plotting
