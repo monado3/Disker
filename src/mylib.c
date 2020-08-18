@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/types.h>
@@ -20,6 +21,19 @@ off_t myrand(off_t max, sfmt_t *sfmt) {
     return (off_t)(sfmt_genrand_uint64(sfmt) % (max + 1));
 }
 
+RW argparse(int argc, char **argv) {
+    if(argc != 3) {
+        show_usage(argv[0]);
+        exit(EXIT_FAILURE);
+    }
+    if(strncmp("read", argv[1], 4) == 0)
+        return READ;
+    if(strncmp("write", argv[1], 5) == 0)
+        return WRITE;
+    show_usage(argv[0]);
+    exit(EXIT_FAILURE);
+}
+
 double calc_elapsed(struct timeval start_tv, struct timeval end_tv) {
     return (end_tv.tv_sec - start_tv.tv_sec) +
            (end_tv.tv_usec - start_tv.tv_usec) / 1e6;
@@ -31,7 +45,8 @@ void perror_exit(char *msg) {
 }
 
 void show_usage(char *program_name) {
-    fprintf(stderr, "Usage: %s log_file_full_path\n", program_name);
+    fprintf(stderr, "Usage: %s [read | write] log_file_full_path\n",
+            program_name);
     exit(EXIT_FAILURE);
 }
 
@@ -39,6 +54,12 @@ char *p_bool(bool is_true) {
     char *t = "true";
     char *f = "false";
     return is_true ? t : f;
+}
+
+char *p_rw(RW rw) {
+    char *r = "read";
+    char *w = "write";
+    return rw == READ ? r : w;
 }
 
 void drop_raid_cache() {

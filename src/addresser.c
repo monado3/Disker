@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/resource.h>
 #include <sys/stat.h>
 #include <sys/time.h>
@@ -14,6 +15,10 @@
 FILE *gFP;
 
 void measure_by_addresses(paras_t paras) {
+    RW rw = paras.rw;
+    size_t bsize = paras.bsize;
+    size_t nthreads = paras.nthreads;
+
     printf("started measuring\n");
 
     struct timeval start_tv, end_tv;
@@ -22,8 +27,10 @@ void measure_by_addresses(paras_t paras) {
     void *blkbuf;
     if(posix_memalign(&blkbuf, 512, BBYTES))
         perror_exit("posix memalign");
+    if(rw == WRITE)
+        memset(blkbuf, rand(), bsize);
 
-    fd = open(HDDFILE, O_RDONLY | O_DIRECT);
+    fd = open(HDDFILE, rw | O_DIRECT);
     if(fd < 0)
         perror_exit("open error");
 
@@ -33,14 +40,24 @@ void measure_by_addresses(paras_t paras) {
     double real, tp;
     while(hdd_ofst < hdd_size) {
 
-        gettimeofday(&start_tv, NULL);
-        if(read(fd, blkbuf, BBYTES) == -1)
-            perror_exit("read error");
-        gettimeofday(&end_tv, NULL);
+        switch(rw) {
+        case READ:
+            gettimeofday(&start_tv, NULL);
+            if(read(fd, blkbuf, BBYTES) == -1)
+                perror_exit("read error");
+            gettimeofday(&end_tv, NULL);
+            break;
+        case WRITE:
+            gettimeofday(&start_tv, NULL);
+            if(write(fd, blkbuf, BBYTES) == -1)
+                perror_exit("write error");
+            gettimeofday(&end_tv, NULL);
+            break;
+        }
 
         real = calc_elapsed(start_tv, end_tv);
-        tp = ((double)BBYTES / real) * 1e-6; // Seq. Read Throughput (MB/sec)
-        fprintf(gFP, "%zu,,%zu,%zu,%zu,,%f,,,\n", paras.bsize, paras.nthreads,
+        tp = ((double)BBYTES / real) * 1e-6; // Seq. Throughput (MB/sec)
+        fprintf(gFP, "%s,%zu,,%zu,%zu,%zu,,%f,,,\n", p_rw(rw), bsize, nthreads,
                 hdd_ofst, hdd_size, tp);
 
         hdd_ofst = lseek(fd, 0, SEEK_CUR);
@@ -51,19 +68,18 @@ void measure_by_addresses(paras_t paras) {
 }
 
 int main(int argc, char **argv) {
-    if(argc != 2)
-        show_usage(argv[0]);
+    RW rw = argparse(argc, argv);
     printf("started measureing disk performance by addresses\n");
 
     drop_raid_cache();
 
-    if((gFP = fopen(argv[1], "w")) == NULL)
+    if((gFP = fopen(argv[2], "w")) == NULL)
         perror_exit("open error");
 
     print_csvheaders(gFP, "addresser");
 
-    paras_t paras = {false, NOTNEED, NOTNEED, BBYTES, true,
-                     1.,    1,       NOTNEED, NOTNEED};
+    paras_t paras = {rw,   false, NOTNEED, NOTNEED, BBYTES,
+                     true, 1.,    1,       NOTNEED, NOTNEED};
     measure_by_addresses(paras);
 
     fclose(gFP);

@@ -22,13 +22,19 @@
 
 #define NOTNEED 0
 
+typedef enum {
+    READ, // = O_RDONLY = 0
+    WRITE,  // = O_WRONLY = 0
+} RW;
+
 typedef struct {
     double tp, iops;
 } measres_t;
 
 typedef struct {
+    RW rw;
     bool is_trial;
-    size_t readbytes, nreads, bsize;
+    size_t rwbytes, nreads, bsize;
     bool is_o_direct;
     double region;
     size_t nthreads;
@@ -37,10 +43,12 @@ typedef struct {
 } paras_t;
 
 off_t myrand(off_t max, sfmt_t *sfmt);
+RW argparse(int argc, char **argv);
 double calc_elapsed(struct timeval start_tv, struct timeval end_tv);
 void perror_exit(char *msg);
 void show_usage(char *program_name);
 char *p_bool(bool is_true);
+char *p_rw(RW rw);
 void drop_raid_cache();
 void bubble_sort(double arr[], size_t len);
 bool is_inner_th(double arr[], size_t len);
