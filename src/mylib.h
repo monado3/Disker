@@ -34,7 +34,7 @@ typedef struct {
 typedef struct {
     RW rw;
     bool is_trial;
-    size_t rwbytes, nreads, bsize;
+    size_t rwbytes, nios, bsize;
     bool is_o_direct;
     double region;
     size_t nthreads;

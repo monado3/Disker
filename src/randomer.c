@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/resource.h>
 #include <sys/stat.h>
 #include <sys/time.h>
@@ -17,27 +18,28 @@
 #define MAXNTREADS 100
 
 FILE *gFP;
-int gNreads;
+static int gNios;
 
 measres_t measure(paras_t paras);
 
-size_t search_good_nreads(paras_t paras) {
+size_t search_good_nios(paras_t paras) {
     size_t len = 7;
-    size_t nreadses[] = {500, 1000, 5000, 10000, 50000, 100000, 500000};
+    size_t nioses[] = {500, 1000, 5000, 10000, 50000, 100000, 500000};
     size_t i;
     for(i = 0; i < len; i++) {
-        paras.nreads = nreadses[i];
+        paras.nios = nioses[i];
         if(is_good_para(measure, paras)) {
-            printf("found good nreads: %zu\n", nreadses[i]);
-            return nreadses[i];
+            printf("found good nios: %zu\n", nioses[i]);
+            return nioses[i];
         }
     }
-    perror_exit("found no good nreads");
+    perror_exit("found no good nios");
     return 1;
 }
 
 void *p_measure(void *p) {
     paras_t *paras = (paras_t *)p;
+    RW rw = paras->rw;
     size_t bsize = paras->bsize;
     int fd = paras->fd;
     off_t align_space = paras->align_space;
@@ -45,36 +47,53 @@ void *p_measure(void *p) {
     void *blkbuf;
     if(posix_memalign(&blkbuf, 512, bsize))
         perror_exit("posix memalign");
+    if(rw == WRITE)
+        memset(blkbuf, rand(), bsize);
+
     sfmt_t sfmt;
     sfmt_init_gen_rand(&sfmt, rand());
-    while(gNreads > 0) {
-        if(pread(fd, blkbuf, bsize, myrand(align_space, &sfmt) * 512) == -1)
-            perror_exit("pread error");
-        gNreads--;
+    switch(rw) {
+    case READ:
+        while(gNios > 0) {
+            if(pread(fd, blkbuf, bsize, myrand(align_space, &sfmt) * 512) == -1)
+                perror_exit("pread error");
+            gNios--;
+        }
+        break;
+    case WRITE:
+        while(gNios > 0) {
+            if(pwrite(fd, blkbuf, bsize, myrand(align_space, &sfmt) * 512) ==
+               -1)
+                perror_exit("pwrite error");
+            gNios--;
+        }
+        break;
     }
     return (void *)NULL;
 }
 
 measres_t measure(paras_t paras) {
+    RW rw = paras.rw;
     bool is_trial = paras.is_trial;
-    size_t nreads = paras.nreads;
+    size_t nios = paras.nios;
     size_t bsize = paras.bsize;
     bool is_o_direct = paras.is_o_direct;
     double region = paras.region;
     size_t nthreads = paras.nthreads;
 
-    printf("started measure(): trial=%s, nreads=%zu, bsize=%zu, direct=%s, "
-           "region=%f, nthreads=%zu\n",
-           p_bool(is_trial), nreads, bsize, p_bool(is_o_direct), region,
-           nthreads);
+    printf(
+        "started measure(): rw=%s, trial=%s, nios=%zu, bsize=%zu, direct=%s, "
+        "region=%f, nthreads=%zu\n",
+        p_rw(rw), p_bool(is_trial), nios, bsize, p_bool(is_o_direct), region,
+        nthreads);
 
     struct timeval start_tv, end_tv;
 
     int fd;
     if(is_o_direct)
-        fd = open(HDDFILE, O_RDONLY | O_DIRECT);
+        fd = open(HDDFILE, rw | O_DIRECT);
     else
-        fd = open(HDDFILE, O_RDONLY);
+        fd = open(HDDFILE, rw);
     if(fd < 0)
         perror_exit("open error");
 
@@ -86,19 +105,35 @@ measres_t measure(paras_t paras) {
         void *blkbuf;
         if(posix_memalign(&blkbuf, 512, bsize))
             perror_exit("posix memalign");
+        if(rw == WRITE)
+            memset(blkbuf, rand(), bsize);
         sfmt_t sfmt;
         sfmt_init_gen_rand(&sfmt, rand());
-        gettimeofday(&start_tv, NULL);
-        for(i = 0; i < nreads; i++) {
-            if(lseek(fd, myrand(align_space, &sfmt) * 512, SEEK_SET) == -1)
-                perror_exit("lseek error");
-            if(read(fd, blkbuf, bsize) == -1)
-                perror_exit("read error");
+        switch(rw) {
+        case READ:
+            gettimeofday(&start_tv, NULL);
+            for(i = 0; i < nios; i++) {
+                if(lseek(fd, myrand(align_space, &sfmt) * 512, SEEK_SET) == -1)
+                    perror_exit("lseek error");
+                if(read(fd, blkbuf, bsize) == -1)
+                    perror_exit("read error");
+            }
+            gettimeofday(&end_tv, NULL);
+            break;
+        case WRITE:
+            gettimeofday(&start_tv, NULL);
+            for(i = 0; i < nios; i++) {
+                if(lseek(fd, myrand(align_space, &sfmt) * 512, SEEK_SET) == -1)
+                    perror_exit("lseek error");
+                if(write(fd, blkbuf, bsize) == -1)
+                    perror_exit("write error");
+            }
+            gettimeofday(&end_tv, NULL);
+            break;
         }
-        gettimeofday(&end_tv, NULL);
         free(blkbuf);
     } else { // multi threads
-        gNreads = nreads;
+        gNios = nios;
         paras.fd = fd;
         paras.align_space = align_space;
         pthread_t pthreads[nthreads];
@@ -118,24 +153,23 @@ measres_t measure(paras_t paras) {
     close(fd);
 
     double real = calc_elapsed(start_tv, end_tv);
-    double tp =
-        ((double)bsize * nreads / real) * 1e-6; // Seq. Read Throughput (MB/sec)
-    double iops = nreads / real;
+    double tp = ((double)bsize * nios / real) * 1e-6; // Throughput (MB/sec)
+    double iops = nios / real;
     measres_t res = {tp, iops};
 
     if(is_trial)
         return res;
 
     if(is_o_direct)
-        fprintf(gFP, "%zu,%f,%zu,,,%zu,%f,%f", bsize, region, nthreads, nreads,
-                tp, iops);
+        fprintf(gFP, "%s,%zu,%f,%zu,,,%zu,%f,%f", p_rw(rw), bsize, region,
+                nthreads, nios, tp, iops);
     else
         fprintf(gFP, ",%f,%f\n", tp, iops);
 
     return res;
 }
 
-void measure_by_bsizes(size_t nreads, char *logdir) {
+void measure_by_bsizes(RW rw, size_t nios, char *logdir) {
     char logpath[100];
     sprintf(logpath, "/%s/01bsize.csv", logdir);
 
@@ -148,8 +182,8 @@ void measure_by_bsizes(size_t nreads, char *logdir) {
     size_t bsizes[] = {512,   1 KiB, 4 KiB,  16 KiB, 64 KiB,  128 KiB, 512 KiB,
                        1 MiB, 4 MiB, 16 MiB, 64 MiB, 128 MiB, 256 MiB, 512 MiB};
     for(i = 0; i < len; i++) {
-        paras_t paras = {false,     NOTNEED,     nreads,  bsizes[i], true,
-                         DEFREGION, DEFNTHREADS, NOTNEED, NOTNEED};
+        paras_t paras = {rw,   false,     NOTNEED,     nios,    bsizes[i],
+                         true, DEFREGION, DEFNTHREADS, NOTNEED, NOTNEED};
         measure(paras);
         paras.is_o_direct = false;
         measure(paras);
@@ -157,7 +191,7 @@ void measure_by_bsizes(size_t nreads, char *logdir) {
     fclose(gFP);
 }
 
-void measure_by_regions(size_t nreads, char *logdir) {
+void measure_by_regions(RW rw, size_t nios, char *logdir) {
     char logpath[100];
     sprintf(logpath, "/%s/02region.csv", logdir);
 
@@ -168,15 +202,15 @@ void measure_by_regions(size_t nreads, char *logdir) {
 
     size_t i, len = 10;
     for(i = 1; i < len; i++) {
-        paras_t paras = {false,    NOTNEED,     nreads,  DEFBSIZE, true,
-                         i * 0.01, DEFNTHREADS, NOTNEED, NOTNEED};
+        paras_t paras = {rw,   false,    NOTNEED,     nios,    DEFBSIZE,
+                         true, i * 0.01, DEFNTHREADS, NOTNEED, NOTNEED};
         measure(paras);
         paras.is_o_direct = false;
         measure(paras);
     }
     for(i = 1; i <= len; i++) {
-        paras_t paras = {false,   NOTNEED,     nreads,  DEFBSIZE, true,
-                         i * 0.1, DEFNTHREADS, NOTNEED, NOTNEED};
+        paras_t paras = {rw,   false,   NOTNEED,     nios,    DEFBSIZE,
+                         true, i * 0.1, DEFNTHREADS, NOTNEED, NOTNEED};
         measure(paras);
         paras.is_o_direct = false;
 
@@ -185,7 +219,7 @@ void measure_by_regions(size_t nreads, char *logdir) {
     fclose(gFP);
 }
 
-void measure_by_threads(size_t nreads, char *logdir) {
+void measure_by_threads(RW rw, size_t nios, char *logdir) {
     char logpath[100];
     sprintf(logpath, "/%s/03threads.csv", logdir);
 
@@ -196,8 +230,8 @@ void measure_by_threads(size_t nreads, char *logdir) {
 
     size_t i;
     for(i = 1; i <= MAXNTREADS; i++) {
-        paras_t paras = {false,     NOTNEED, nreads,  DEFBSIZE, true,
-                         DEFREGION, i,       NOTNEED, NOTNEED};
+        paras_t paras = {rw,   false,     NOTNEED, nios,    DEFBSIZE,
+                         true, DEFREGION, i,       NOTNEED, NOTNEED};
         measure(paras);
         paras.is_o_direct = false;
         measure(paras);
@@ -205,7 +239,7 @@ void measure_by_threads(size_t nreads, char *logdir) {
     fclose(gFP);
 }
 
-void measure_by_region_mthreads(size_t nreads, char *logdir) {
+void measure_by_region_mthreads(RW rw, size_t nios, char *logdir) {
     char logpath[100];
     sprintf(logpath, "/%s/04regionmulti.csv", logdir);
 
@@ -216,15 +250,15 @@ void measure_by_region_mthreads(size_t nreads, char *logdir) {
 
     size_t i, len = 10;
     for(i = 1; i < len; i++) {
-        paras_t paras = {false,    NOTNEED,    nreads,  DEFBSIZE, true,
-                         i * 0.01, MAXNTREADS, NOTNEED, NOTNEED};
+        paras_t paras = {rw,   false,    NOTNEED,    nios,    DEFBSIZE,
+                         true, i * 0.01, MAXNTREADS, NOTNEED, NOTNEED};
         measure(paras);
         paras.is_o_direct = false;
         measure(paras);
     }
     for(i = 1; i <= len; i++) {
-        paras_t paras = {false,   NOTNEED,    nreads,  DEFBSIZE, true,
-                         i * 0.1, MAXNTREADS, NOTNEED, NOTNEED};
+        paras_t paras = {rw,   false,   NOTNEED,    nios,    DEFBSIZE,
+                         true, i * 0.1, MAXNTREADS, NOTNEED, NOTNEED};
         measure(paras);
         paras.is_o_direct = false;
         measure(paras);
@@ -233,29 +267,28 @@ void measure_by_region_mthreads(size_t nreads, char *logdir) {
 }
 
 int main(int argc, char **argv) {
-    if(argc != 2)
-        show_usage(argv[0]);
-    char *logdir = argv[1];
+    RW rw = argparse(argc, argv);
+    char *logdir = argv[2];
     printf("started measureing random disk performance\n");
 
     drop_raid_cache();
 
-    size_t nreads;
-    paras_t trial = {true,      NOTNEED,     NOTNEED, DEFBSIZE, true,
-                     DEFREGION, DEFNTHREADS, NOTNEED, NOTNEED};
-    nreads = search_good_nreads(trial);
-    measure_by_bsizes(nreads, logdir);
+    size_t nios;
+    paras_t trial = {rw,   true,      NOTNEED,     NOTNEED, DEFBSIZE,
+                     true, DEFREGION, DEFNTHREADS, NOTNEED, NOTNEED};
+    nios = search_good_nios(trial);
+    measure_by_bsizes(rw, nios, logdir);
 
-    trial.region = 0.1;
-    nreads = search_good_nreads(trial);
-    measure_by_regions(nreads, logdir);
+    trial.region = 0.01;
+    nios = search_good_nios(trial);
+    measure_by_regions(rw, nios, logdir);
     trial.region = DEFREGION;
 
     trial.nthreads = MAXNTREADS;
-    nreads = search_good_nreads(trial);
-    measure_by_threads(nreads, logdir);
+    nios = search_good_nios(trial);
+    measure_by_threads(rw, nios, logdir);
 
-    measure_by_region_mthreads(nreads, logdir);
+    measure_by_region_mthreads(rw, nios, logdir);
 
     return EXIT_SUCCESS;
 }
