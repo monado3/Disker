@@ -11,7 +11,7 @@
 
 ## Usage
 1. `$ poetry shell`
-1. `$ python main.py -abr`
+1. `$ python main.py --read --write -abr`
 
 ## Architecture
 - main.py : broker of C executables & grapher
