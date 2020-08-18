@@ -141,7 +141,7 @@ void print_csvheaders(FILE *fp, char *progname) {
             "Disker %s output\n"
             "disk:%s\n\n"
 
-            "bsize,region,nthreads,address,readbytes,nreads,direct_tp(MB/"
+            "rw,bsize,region,nthreads,address,rwbytes,nios,direct_tp(MB/"
             "sec),direct_iops,indirect_tp(MB/sec),indirect_iops\n",
             progname, HDDFILE);
 }
