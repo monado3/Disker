@@ -55,7 +55,7 @@ def init_argparser():
 def check_args(args):
     if not (args.read or args.write):
         print('You need to do at least one mode (--read or --write)')
-    if not (args.address and args.block or args.random):
+    if not (args.address or args.block or args.random):
         print('You need to specify at least one measuremnt item (-a, -b, -r)')
 
 
