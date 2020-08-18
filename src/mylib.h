@@ -24,7 +24,7 @@
 
 typedef enum {
     READ, // = O_RDONLY = 0
-    WRITE,  // = O_WRONLY = 0
+    WRITE,  // = O_WRONLY = 1
 } RW;
 
 typedef struct {
