@@ -87,7 +87,7 @@ def read_s_addresses(p):
 
 
 def plot_s_addresses(df):
-    rw = bsize, nthreads, rwarea = const_accesser(
+    rw, bsize, nthreads, rwarea = const_accesser(
         df, ['rw', 'bsize', 'nthreads', 'rwbytes'])
 
     fig, ax = plt.subplots(figsize=(10, 5), dpi=250)
