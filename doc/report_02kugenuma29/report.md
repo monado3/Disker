@@ -58,7 +58,7 @@ The throughput gets step-wise lower, as an address gets larger. This is caused b
 ### Rand.
 #### by block size
 The reason rnd. accesses with large block sizes are high-throughput is they are virtually just sequential accesses.
-![](r_01bsize.png)
+![](read_r_01bsize.png)
 
 #### by region ratio
 When the area you access is a small portion of HDD space, the ratio of cache-hit gets higher and then the performance gets better.
