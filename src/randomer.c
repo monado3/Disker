@@ -178,11 +178,11 @@ void measure_by_bsizes(RW rw, size_t nios, char *logdir) {
 
     print_csvheaders(gFP, "randomer bsizes");
 
-    size_t i, len = 21;
-    size_t bsizes[] = {512,     1 KiB,   4 KiB,  16 KiB, 64 KiB, 128 KiB,
-                       512 KiB, 1 MiB,   2 MiB,  3 MiB,  4 MiB,  6 MiB,
-                       8 MiB,   10 MiB,  12 MiB, 14 MiB, 16 MiB, 64 MiB,
-                       128 MiB, 256 MiB, 512 MiB};
+    size_t i, len = 22;
+    size_t bsizes[] = {512,     1 KiB,   4 KiB,   16 KiB, 64 KiB, 128 KiB,
+                       512 KiB, 1 MiB,   2 MiB,   3 MiB,  4 MiB,  6 MiB,
+                       8 MiB,   10 MiB,  12 MiB,  14 MiB, 16 MiB, 32 MiB,
+                       64 MiB,  128 MiB, 256 MiB, 512 MiB};
     for(i = 0; i < len; i++) {
         paras_t paras = {rw,   false,     NOTNEED,     nios,    bsizes[i],
                          true, DEFREGION, DEFNTHREADS, NOTNEED, NOTNEED};

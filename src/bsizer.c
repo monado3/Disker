@@ -107,9 +107,11 @@ measres_t measure_by_bsize(paras_t paras) {
 }
 
 void measure_by_bsizes(paras_t paras) {
-    size_t i, len = 14;
-    size_t bsizes[] = {512,   1 KiB, 4 KiB,  16 KiB, 64 KiB,  128 KiB, 512 KiB,
-                       1 MiB, 4 MiB, 16 MiB, 64 MiB, 128 MiB, 256 MiB, 512 MiB};
+    size_t i, len = 22;
+    size_t bsizes[] = {512,    1 KiB,   2 KiB,   3 KiB,  4 KiB,  6 KiB,
+                       8 KiB,  10 KiB,  12 KiB,  14 KiB, 16 KiB, 32 KiB,
+                       64 KiB, 128 KiB, 512 KiB, 1 MiB,  4 MiB,  16 MiB,
+                       64 MiB, 128 MiB, 256 MiB, 512 MiB};
     for(i = 0; i < len; i++) {
         paras.bsize = bsizes[i];
         paras.is_o_direct = true;
