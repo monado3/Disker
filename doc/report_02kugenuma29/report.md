@@ -57,7 +57,8 @@ The throughput gets step-wise lower, as an address gets larger. This is caused b
 
 ### Rand.
 #### by block size
-The reason rnd. accesses with large block sizes are high-throughput is they are virtually just sequential accesses.
+- The reason rnd. accesses with large block sizes are high-throughput is they are virtually just sequential accesses.
+- The throughput drop at bsize=4 MiB of w/o O_DIRECT is not just a coincidence. (multiple trials show this.) The reason is under investigation.
 ![](read_r_01bsize.png)
 
 #### by region ratio
