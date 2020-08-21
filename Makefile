@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -msse2 -DSFMT_MEXP=19937
+CFLAGS = -Wall -Wextra -Wbad-function-cast -msse2 -DSFMT_MEXP=19937
 
 all: addresser bsizer randomer
 
