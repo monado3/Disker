@@ -138,10 +138,6 @@ measres_t measure(paras_t paras) {
         paras.fd = fd;
         paras.align_space = align_space;
         pthread_t pthreads[nthreads];
-        for(i = 0; i < nthreads; i++) {
-            pthread_t p;
-            pthreads[i] = p;
-        }
         gettimeofday(&start_tv, NULL);
         for(i = 0; i < nthreads; i++) {
             pthread_create(&pthreads[i], NULL, p_measure, &paras);
