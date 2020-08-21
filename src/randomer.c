@@ -103,8 +103,12 @@ measres_t measure(paras_t paras) {
     size_t i;
     if(nthreads < 2) { // single thread
         void *blkbuf;
-        if(posix_memalign(&blkbuf, 512, bsize))
-            perror_exit("posix memalign");
+        if(is_o_direct) {
+            if(posix_memalign(&blkbuf, 512, bsize))
+                perror_exit("posix memalign");
+        } else {
+            blkbuf = malloc(bsize);
+        }
         if(rw == WRITE)
             memset(blkbuf, rand(), bsize);
         sfmt_t sfmt;
@@ -281,16 +285,16 @@ int main(int argc, char **argv) {
     nios = search_good_nios(trial);
     measure_by_bsizes(rw, nios, logdir);
 
-    trial.region = 0.01;
-    nios = search_good_nios(trial);
-    measure_by_regions(rw, nios, logdir);
-    trial.region = DEFREGION;
+    // trial.region = 0.01;
+    // nios = search_good_nios(trial);
+    // measure_by_regions(rw, nios, logdir);
+    // trial.region = DEFREGION;
 
-    trial.nthreads = MAXNTREADS;
-    nios = search_good_nios(trial);
-    measure_by_threads(rw, nios, logdir);
+    // trial.nthreads = MAXNTREADS;
+    // nios = search_good_nios(trial);
+    // measure_by_threads(rw, nios, logdir);
 
-    measure_by_region_mthreads(rw, nios, logdir);
+    // measure_by_region_mthreads(rw, nios, logdir);
 
     return EXIT_SUCCESS;
 }
