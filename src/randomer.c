@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <fcntl.h>
 #include <pthread.h>
+#include <stdatomic.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,7 +19,7 @@
 #define MAXNTREADS 100
 
 FILE *gFP;
-static int gNios;
+static atomic_long gNios;
 
 measres_t measure(paras_t paras);
 
